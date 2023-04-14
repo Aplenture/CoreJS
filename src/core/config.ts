@@ -13,11 +13,17 @@ export class Config {
         return this.data[key];
     }
 
+    public getSafe<T>(key: string, type?: string): T {
+        this.require(key, type);
+
+        return this.data[key];
+    }
+
     public set<T>(key: string, value: T) {
         this.data[key] = value;
     }
 
-    public test(key: string, type?: string): boolean {
+    public require(key: string, type?: string) {
         if (!key)
             throw new Error('key is undefined');
 
@@ -26,8 +32,6 @@ export class Config {
 
         if (type && typeof this.data[key] != type)
             throw new Error(`value '${key}' in config is not type of '${type}' (${this.data[key]})`);
-
-        return true;
     }
 
     protected static flatten(source: any, target = {}, rootKey?: string): any {
