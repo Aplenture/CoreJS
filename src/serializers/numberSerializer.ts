@@ -1,45 +1,15 @@
-import { CoreError } from "../core";
+import { Serializer } from "../core";
 import { CoreErrorCode } from "../enums";
-import { Serializer } from "../interfaces";
 import { parseToNumber, parseToString } from "../utils";
 
-export class NumberSerializer implements Serializer<number>{
-    public readonly optional: boolean;
+export class NumberSerializer extends Serializer<number>{
+    public readonly errorCode = CoreErrorCode.MissingNumber;
 
-    private readonly deserializedDefault: number;
-    private readonly serializedDefault: string;
-
-    constructor(
-        public readonly name: string,
-        public readonly description: string,
-        _default?: number
-    ) {
-        this.optional = undefined === _default;
-        this.deserializedDefault = _default;
-        this.serializedDefault = parseToString(_default);
+    protected serializeData(data: number): string {
+        return parseToString(data);
     }
 
-    public serialize(data: number): string {
-        const result = parseToString(data);
-
-        if (undefined == result)
-            if (this.optional)
-                return this.serializedDefault;
-            else
-                throw new CoreError(CoreErrorCode.MissingNumber, { name: this.name });
-
-        return result;
+    protected deserializeData(data: string): number {
+        return parseToNumber(data);
     }
-
-    public deserialie(data: string): number {
-        const result = parseToNumber(data);
-
-        if (undefined == result)
-            if (this.optional)
-                return this.deserializedDefault;
-            else
-                throw new CoreError(CoreErrorCode.MissingNumber, { name: this.name });
-
-        return result;
-    }
-}
+} 

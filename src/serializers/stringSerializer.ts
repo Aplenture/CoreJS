@@ -1,30 +1,15 @@
-import { CoreError } from "../core";
+import { Serializer } from "../core";
 import { CoreErrorCode } from "../enums";
-import { Serializer } from "../interfaces";
 import { parseToString } from "../utils";
 
-export class StringSerializer implements Serializer<string>{
-    public readonly optional: boolean;
+export class StringSerializer extends Serializer<string>{
+    public readonly errorCode = CoreErrorCode.MissingString;
 
-    constructor(
-        public readonly name: string,
-        public readonly description: string,
-        public readonly _default?: string
-    ) {
-        this.optional = undefined === _default;
-    }
-
-    public serialize(data: string): string {
-        if (undefined == data)
-            if (this.optional)
-                return this._default;
-            else
-                throw new CoreError(CoreErrorCode.MissingString, { name: this.name });
-
+    protected serializeData(data: string): string {
         return parseToString(data);
     }
 
-    public deserialie(data: string): string {
-        return this.serialize(data);
+    protected deserializeData(data: string): string {
+        return parseToString(data);
     }
 }
