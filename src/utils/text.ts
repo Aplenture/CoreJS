@@ -108,7 +108,7 @@ export function bitsToString(value: number): string {
     return result;
 }
 
-export function parseArgs(value: string): NodeJS.ReadOnlyDict<string | readonly string[]> {
+export function parseArgs(value: string): NodeJS.Dict<string | readonly string[]> {
     const result: NodeJS.Dict<string | string[]> = {};
 
     value.split('--').forEach(str => {
