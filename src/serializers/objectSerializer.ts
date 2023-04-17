@@ -6,10 +6,8 @@ export class ObjectSerializer<T extends NodeJS.ReadOnlyDict<any> | void> extends
 
     private readonly parsers: readonly Serializer<any>[];
 
-    constructor(name: string, ...parsers: Serializer<any>[]) {
-        const maxNameLength = Math.max(...parsers.map(property => property.name.length));
-
-        super(name, parsers.map(property => '  ' + property.name + ' '.repeat(maxNameLength - property.name.length) + ' - ' + (property.optional ? '(optional) ' : '') + property.description).join("\n"));
+    constructor(name: string, description: string, ...parsers: Serializer<any>[]) {
+        super(name, description);
 
         this.parsers = parsers;
     }
