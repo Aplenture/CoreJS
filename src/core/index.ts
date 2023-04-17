@@ -1,4 +1,4 @@
-export * from "./config";
+export * from "./context";
 export * from "./coreError";
 export * from "./event";
 export * from "./localization";
