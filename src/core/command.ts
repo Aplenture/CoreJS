@@ -1,22 +1,10 @@
-import { ArgumentsSerializer } from "../serializers";
-import { Context } from "./context";
-import { Event } from "./event";
-import { Response } from "./response";
+import { Parameter } from "./parameter";
 
-export abstract class Command<TArgs> {
-    public readonly onMessage = new Event<Command<any>, string>('Command.onMessage');
+export type CommandAction<T> = (args) => Promise<T | void>;
 
-    public readonly description: string;
-    public readonly argumentsSerializer?: ArgumentsSerializer<TArgs>;
-
-    constructor(
-        public readonly config: Context,
-        public readonly context: Context
-    ) { }
-
-    public abstract execute(args: TArgs): Promise<Response>;
-
-    protected message(text: string) {
-        this.onMessage.emit(this, text);
-    }
+export interface Command<T> {
+    readonly name: string;
+    readonly action: CommandAction<T>;
+    readonly description?: string;
+    readonly parameters?: readonly Parameter<any>[];
 }

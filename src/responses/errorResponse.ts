@@ -2,7 +2,7 @@ import { ResponseCode } from "../enums";
 import { TextResponse } from "./textResponse";
 
 export class ErrorResponse extends TextResponse {
-    constructor(message: string, code: ResponseCode) {
+    constructor(code: ResponseCode, message = '') {
         super(message, code);
     }
 }

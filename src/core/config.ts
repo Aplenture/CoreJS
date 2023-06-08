@@ -1,17 +1,8 @@
-import { Event } from "./event";
-
-interface Data {
-    readonly key: string;
-    readonly value: any;
-}
-
-export class Context {
-    public readonly onChanged = new Event<Context, Data>('Context.onChanged');
-
+export class Config {
     protected data: NodeJS.Dict<any>;
 
     constructor(data: NodeJS.ReadOnlyDict<any> = {}) {
-        this.data = Context.flatten(data);
+        this.data = Config.flatten(data);
     }
 
     public has(key: string): boolean {
@@ -22,13 +13,13 @@ export class Context {
         return this.data[key];
     }
 
-    public getAll<T>(prefix: string): NodeJS.ReadOnlyDict<T> {
+    public getAll<T>(prefix: string, removePrefix = false): NodeJS.ReadOnlyDict<T> {
         const result = {};
 
         Object
             .keys(this.data)
             .filter(key => 0 == key.indexOf(prefix))
-            .forEach(key => result[key] = this.data[key]);
+            .forEach(key => result[removePrefix ? key.substring(prefix.length) : key] = this.data[key]);
 
         return result;
     }
@@ -39,11 +30,6 @@ export class Context {
         return this.data[key];
     }
 
-    public set<T>(key: string, value: T) {
-        this.data[key] = value;
-        this.onChanged.emit(this, { key, value });
-    }
-
     public require(key: string, type?: string) {
         if (!key)
             throw new Error('key is undefined');
@@ -51,8 +37,13 @@ export class Context {
         if (undefined === this.data[key])
             throw new Error(`missing value '${key}' in context`);
 
-        if (type && typeof this.data[key] != type)
-            throw new Error(`value '${key}' in context is not type of '${type}' (${this.data[key]})`);
+        if (type)
+            if (type == 'array' ? !Array.isArray(this.data[key]) : typeof this.data[key] != type)
+                throw new Error(`value '${key}' in context is not type of '${type}' (${this.data[key]})`);
+    }
+
+    public serialize(): string {
+        return JSON.stringify(this.data);
     }
 
     protected static flatten(source: any, target = {}, rootKey?: string): any {

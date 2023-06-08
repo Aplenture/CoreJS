@@ -13,7 +13,7 @@ interface CurrencyOptions {
     readonly digits?: number;
 }
 
-export function parseToTime(value: string | number | undefined, key?: string): number {
+export function parseToTime(value: string | number | undefined): number {
     if (undefined === value)
         return;
 
@@ -28,14 +28,14 @@ export function parseToTime(value: string | number | undefined, key?: string): n
     return result;
 }
 
-export function parseToString(value: any, key?: string): string {
+export function parseToString(value: any): string {
     if (undefined === value)
         return;
 
     return value.toString();
 }
 
-export function parseToNumber(value: string | number | undefined, key?: string): number {
+export function parseToNumber(value: string | number | undefined): number {
     if (undefined === value)
         return;
 
@@ -47,7 +47,7 @@ export function parseToNumber(value: string | number | undefined, key?: string):
     return result;
 }
 
-export function parseToBool(value: string | number | boolean | undefined, key?: string): boolean {
+export function parseToBool(value: string | number | boolean | undefined): boolean {
     if (undefined === value)
         return;
 
@@ -108,7 +108,7 @@ export function bitsToString(value: number): string {
     return result;
 }
 
-export function parseArgs(value: string): NodeJS.Dict<string | readonly string[]> {
+export function parseArgsFromString(value: string): NodeJS.Dict<string | readonly string[]> {
     const result: NodeJS.Dict<string | string[]> = {};
 
     value.split('--').forEach(str => {
@@ -131,6 +131,12 @@ export function parseArgs(value: string): NodeJS.Dict<string | readonly string[]
     });
 
     return result;
+}
+
+export function parseArgsToString(args: NodeJS.ReadOnlyDict<string | readonly string[]>): string {
+    return Object.keys(args)
+        .map(key => `--${key} ${args[key]}`)
+        .join(' ');
 }
 
 export function parseToNumeric(value: string): string {
