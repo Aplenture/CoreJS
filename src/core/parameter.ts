@@ -11,7 +11,7 @@ export abstract class Parameter<T> {
         public readonly description: string,
         public readonly _default?: T
     ) {
-        this.optional = undefined === _default;
+        this.optional = undefined !== _default;
     }
 
     public parse(data: string): T {
