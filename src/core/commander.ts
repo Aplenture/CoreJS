@@ -20,7 +20,7 @@ export class Commander {
     constructor(options: Options = {}) {
         this._fallbackCommand = {
             name: '',
-            action: options.fallback || (async () => `Unknown command. Type '${COMMAND_NAME_HELP}' to list all known commands.`)
+            action: options.fallback || (async () => `Unknown command. Type '${COMMAND_NAME_HELP}' to list all known commands.\n`)
         };
 
         if (!options.fallback) {
@@ -33,6 +33,12 @@ export class Commander {
                 ]
             });
         }
+    }
+
+    public get count(): number { return Object.keys(this._commands).length; }
+
+    public has(command: string): boolean {
+        return !!this._commands[command.toLowerCase()];
     }
 
     public add(...commands: Command[]) {
