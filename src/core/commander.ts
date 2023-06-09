@@ -1,4 +1,4 @@
-import { StringParameter } from "../parameters";
+import { StringParameter } from "../parameters/stringParameter";
 import { formatDuration, parseArgsFromString, parseArgsToString } from "../utils";
 import { Command, CommandAction } from "./command";
 import { Event } from "./event";

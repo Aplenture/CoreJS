@@ -1,4 +1,4 @@
-import { Parameter } from "../core";
+import { Parameter } from "../core/parameter";
 import { parseToString } from "../utils";
 
 export class StringParameter extends Parameter<string>{

@@ -1,4 +1,4 @@
-import { Parameter } from "../core";
+import { Parameter } from "../core/parameter";
 import { parseToNumber } from "../utils";
 
 export class NumberParameter extends Parameter<number>{

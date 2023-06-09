@@ -1,4 +1,4 @@
-import { Parameter } from "../core";
+import { Parameter } from "../core/parameter";
 import { parseToBool } from "../utils";
 
 export class BoolParameter extends Parameter<boolean>{
