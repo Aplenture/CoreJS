@@ -6,27 +6,27 @@ import { Stopwatch } from "./stopwatch";
 
 const COMMAND_NAME_HELP = 'help';
 
-interface Options<T> {
-    readonly fallback?: CommandAction<T>;
+interface Options {
+    readonly fallback?: CommandAction;
 }
 
-export class Commander<T> {
+export class Commander {
     public readonly onCommand = new Event<string, any>('Commander.onCommand');
-    public readonly onMessage = new Event<Commander<T>, string>('Commander.onMessage');
+    public readonly onMessage = new Event<Commander, string>('Commander.onMessage');
 
-    private readonly _commands: NodeJS.Dict<Command<T>> = {};
-    private readonly _fallbackCommand: Command<T>;
+    private readonly _commands: NodeJS.Dict<Command> = {};
+    private readonly _fallbackCommand: Command;
 
-    constructor(options: Options<T> = {}) {
+    constructor(options: Options = {}) {
         this._fallbackCommand = {
             name: '',
-            action: options.fallback || (async () => this.onMessage.emit(this, `Unknown command. Type '${COMMAND_NAME_HELP}' to list all known commands.`))
+            action: options.fallback || (async () => `Unknown command. Type '${COMMAND_NAME_HELP}' to list all known commands.`)
         };
 
         if (!options.fallback) {
             this.add({
                 name: COMMAND_NAME_HELP,
-                action: async args => this.onMessage.emit(this, this.help(args.command)),
+                action: async args => this.help(args.command),
                 description: 'Lists all known commands or returns details of specific <command>.',
                 parameters: [
                     new StringParameter('command', 'Lists all commands with this prefix or returns details of specific command.', '')
@@ -35,7 +35,7 @@ export class Commander<T> {
         }
     }
 
-    public add(...commands: Command<T>[]) {
+    public add(...commands: Command[]) {
         commands.forEach(command => this._commands[command.name.toLowerCase()] = command);
     }
 
@@ -49,7 +49,7 @@ export class Commander<T> {
         return this.executeCommand(`${command} ${params}`, command, args);
     }
 
-    public executeLine(commandLine: string) {
+    public executeLine(commandLine = COMMAND_NAME_HELP) {
         const split = commandLine.split(' ');
         const command = split[0] || COMMAND_NAME_HELP;
         const args = parseArgsFromString(commandLine.substring(command.length));
@@ -75,21 +75,23 @@ export class Commander<T> {
                     .map(param => `${param.name} - ${param.description || ''}`)
                     .join('\n');
 
+            result += '\n';
+
             return result;
         }
 
         return commands
             .map(command => `${command.name} - ${command.description || ''}`)
-            .join('\n');
+            .join('\n') + '\n';
     }
 
-    private async executeCommand(commandLine: string, command: string, args = {}): Promise<T | void> {
+    private async executeCommand(commandLine: string, command: string, args = {}): Promise<any> {
         command = command.toLowerCase();
 
         const stopwatch = new Stopwatch();
         const instance = this._commands[command] || this._fallbackCommand;
 
-        let result: T | void;
+        let result: any;
         let error: Error;
 
         if (instance.parameters)

@@ -1,10 +1,10 @@
 import { Parameter } from "./parameter";
 
-export type CommandAction<T> = (args) => Promise<T | void>;
+export type CommandAction = (args) => Promise<any>;
 
-export interface Command<T> {
+export interface Command {
     readonly name: string;
-    readonly action: CommandAction<T>;
+    readonly action: CommandAction;
     readonly description?: string;
     readonly parameters?: readonly Parameter<any>[];
 }
