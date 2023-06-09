@@ -160,3 +160,21 @@ export function generateColor(text: string): string {
             , 10) & 0xFFFFFF
     ).toString(16).toUpperCase();
 }
+
+export function URLParamsToString(params: NodeJS.Dict<any> = {}): string {
+    if (!params)
+        return '';
+
+    const args = [];
+
+    for (const key in params) {
+        if (typeof params[key] == 'boolean')
+            args.push(`${key}=${params[key] ? 1 : 0}`);
+        else if (Array.isArray(params[key]))
+            (params[key] as any).forEach(value => args.push(`${key}=${encodeString(value)}`));
+        else
+            args.push(`${key}=${encodeString(params[key] as any)}`)
+    }
+
+    return args.join('&');
+}
