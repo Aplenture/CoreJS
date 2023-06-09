@@ -27,7 +27,7 @@ export class Commander {
             this.add({
                 name: COMMAND_NAME_HELP,
                 action: async args => this.help(args.command),
-                description: 'Lists all known commands or returns details of specific <command>.',
+                description: 'Lists all commands or returns details of specific <command>.',
                 parameters: [
                     new StringParameter('command', 'Lists all commands with this prefix or returns details of specific command.', '')
                 ]
