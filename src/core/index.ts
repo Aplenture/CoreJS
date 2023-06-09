@@ -1,7 +1,5 @@
-export * from "./cache";
 export * from "./command";
 export * from "./commander";
-export * from "./config";
 export * from "./coreError";
 export * from "./event";
 export * from "./localization";
