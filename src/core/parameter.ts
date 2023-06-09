@@ -26,5 +26,5 @@ export abstract class Parameter<T> {
         return result;
     }
 
-    protected abstract parseData(data: string): T;
+    protected abstract parseData(data: string | readonly string[]): T;
 }
