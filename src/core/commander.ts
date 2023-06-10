@@ -49,15 +49,24 @@ export class Commander {
         delete this._commands[command.toLowerCase()];
     }
 
-    public execute(command = COMMAND_NAME_HELP, args?: {}) {
-        const params = parseArgsToString(args);
+    public execute(command?: string, args?: {}) {
+        if (!command)
+            command = COMMAND_NAME_HELP;
 
-        return this.executeCommand(`${command} ${params}`, command, args);
+        const params = parseArgsToString(args);
+        const commandLine = params
+            ? `${command} ${params}`
+            : command;
+
+        return this.executeCommand(commandLine, command, args);
     }
 
-    public executeLine(commandLine = COMMAND_NAME_HELP) {
+    public executeLine(commandLine?: string) {
+        if (!commandLine)
+            commandLine = COMMAND_NAME_HELP;
+
         const split = commandLine.split(' ');
-        const command = split[0] || COMMAND_NAME_HELP;
+        const command = split[0];
         const args = parseArgsFromString(commandLine.substring(command.length));
 
         return this.executeCommand(commandLine, command, args);
@@ -117,7 +126,7 @@ export class Commander {
 
         stopwatch.stop();
 
-        this.onMessage.emit(this, `executed ${commandLine} in ${formatDuration(stopwatch.duration, { seconds: true, milliseconds: true })}`);
+        this.onMessage.emit(this, `executed '${commandLine}' in ${formatDuration(stopwatch.duration, { seconds: true, milliseconds: true })}`);
 
         if (error)
             throw error;
