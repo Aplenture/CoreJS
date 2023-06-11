@@ -5,3 +5,5 @@ export class OKResponse extends BoolResponse {
         super(true);
     }
 }
+
+export const RESPONSE_OK = new OKResponse();

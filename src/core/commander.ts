@@ -7,15 +7,14 @@ import { Stopwatch } from "./stopwatch";
 const COMMAND_NAME_HELP = 'help';
 
 interface Options {
-    readonly fallback?: CommandAction;
+    readonly fallback?: CommandAction<any>;
 }
 
 export class Commander {
-    public readonly onCommand = new Event<string, any>('Commander.onCommand');
     public readonly onMessage = new Event<Commander, string>('Commander.onMessage');
 
-    private readonly _commands: NodeJS.Dict<Command> = {};
-    private readonly _fallbackCommand: Command;
+    private readonly _commands: NodeJS.Dict<Command<any>> = {};
+    private readonly _fallbackCommand: Command<any>;
 
     constructor(options: Options = {}) {
         this._fallbackCommand = {
@@ -24,9 +23,9 @@ export class Commander {
         };
 
         if (!options.fallback) {
-            this.add({
+            this.set({
                 name: COMMAND_NAME_HELP,
-                action: async args => this.help(args.command),
+                action: async args => this.help(args.command && args.command.toString()),
                 description: 'Lists all commands or returns details of specific <command>.',
                 parameters: [
                     new StringParameter('command', 'Lists all commands with this prefix or returns details of specific command.', '')
@@ -41,15 +40,20 @@ export class Commander {
         return !!this._commands[command.toLowerCase()];
     }
 
-    public add(...commands: Command[]) {
-        commands.forEach(command => this._commands[command.name.toLowerCase()] = command);
+    public set(command: Command<any>) {
+        this._commands[command.name.toLowerCase()] = command;
     }
 
     public remove(command: string) {
         delete this._commands[command.toLowerCase()];
     }
 
-    public execute(command?: string, args?: {}) {
+    public clear() {
+        for (const key in this._commands)
+            delete this._commands[key];
+    }
+
+    public execute(command?: string, args?: any) {
         if (!command)
             command = COMMAND_NAME_HELP;
 
@@ -106,30 +110,16 @@ export class Commander {
         const stopwatch = new Stopwatch();
         const instance = this._commands[command] || this._fallbackCommand;
 
-        let result: any;
-        let error: Error;
-
         if (instance.parameters)
             instance.parameters.forEach(param => args[param.name] = param.parse(args[param.name]));
 
         stopwatch.start();
 
-        try {
-            this.onCommand.emit(command, args);
-
-            result = await instance.action(args);
-        } catch (e) {
-            error = e;
-
-            this.onMessage.emit(this, `${commandLine} >> ${e.stack}`);
-        }
+        const result = await instance.action(args);
 
         stopwatch.stop();
 
         this.onMessage.emit(this, `executed '${commandLine}' in ${formatDuration(stopwatch.duration, { seconds: true, milliseconds: true })}`);
-
-        if (error)
-            throw error;
 
         return result;
     }
