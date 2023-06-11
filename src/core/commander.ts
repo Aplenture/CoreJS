@@ -2,21 +2,33 @@ import { StringParameter } from "../parameters/stringParameter";
 import { formatDuration, parseArgsFromString, parseArgsToString } from "../utils";
 import { Command, CommandAction } from "./command";
 import { Event } from "./event";
+import { Parameter } from "./parameter";
 import { Stopwatch } from "./stopwatch";
 
 const COMMAND_NAME_HELP = 'help';
 
 interface Options {
+    readonly description?: string;
+    readonly parameters?: readonly Parameter<any>[];
+    readonly globalArgs?: NodeJS.ReadOnlyDict<any>;
     readonly fallback?: CommandAction<any>;
 }
 
 export class Commander {
     public readonly onMessage = new Event<Commander, string>('Commander.onMessage');
 
+    public readonly description: string;
+    public readonly parameters: readonly Parameter<any>[];
+    public readonly globalArgs: NodeJS.Dict<any>;
+
     private readonly _commands: NodeJS.Dict<Command<any>> = {};
     private readonly _fallbackCommand: Command<any>;
 
     constructor(options: Options = {}) {
+        this.description = options.description || "";
+        this.parameters = options.parameters || [];
+        this.globalArgs = options.globalArgs || {};
+
         this._fallbackCommand = {
             name: '',
             action: options.fallback || (async () => `Unknown command. Type '${COMMAND_NAME_HELP}' to list all known commands.\n`)
@@ -33,8 +45,6 @@ export class Commander {
             });
         }
     }
-
-    public get count(): number { return Object.keys(this._commands).length; }
 
     public has(command: string): boolean {
         return !!this._commands[command.toLowerCase()];
@@ -81,27 +91,35 @@ export class Commander {
 
         const commands = Object.values(this._commands).filter(command => !prefix || 0 == command.name.indexOf(prefix));
 
-        if (1 == commands.length) {
-            let result = commands[0].name + '\n';
+        let result = "";
 
-            if (commands[0].description)
-                result += commands[0].description + '\n';
+        if (1 < commands.length && this.description)
+            result += this.description + '\n\n';
 
-            if (commands[0].parameters)
-                result += '\n' + commands[0].parameters
-                    .map(param => `${param.name} - ${param.description || ''}`)
-                    .join('\n') + '\n';
+        if (this.parameters.length)
+            result += 'Global parameters:\n' + this.parameters
+                .map(param => `${param.name} - ${param.description || ''}`)
+                .join('\n') + '\n\n';
 
-            return result;
-        }
+        if (0 < commands.length)
+            result += 'Command(s):\n' + commands
+                .map(command => `${command.name} - ${command.description || ''}`)
+                .join('\n') + '\n';
 
-        return commands
-            .map(command => `${command.name} - ${command.description || ''}`)
-            .join('\n') + '\n';
+        if (1 == commands.length && commands[0].parameters && commands[0].parameters.length)
+            result += '\nCommand parameters:\n' + commands[0].parameters
+                .map(param => `${param.name} - ${param.description || ''}`)
+                .join('\n') + '\n';
+
+        if (0 == commands.length)
+            result += 'No commands found!\n';
+
+        return result;
     }
 
-    private async executeCommand(commandLine: string, command: string, args = {}): Promise<any> {
+    private async executeCommand(commandLine: string, command: string, args?: any): Promise<any> {
         command = command.toLowerCase();
+        args = Object.assign({}, this.globalArgs, args);
 
         const stopwatch = new Stopwatch();
         const instance = this._commands[command] || this._fallbackCommand;
