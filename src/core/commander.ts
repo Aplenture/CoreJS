@@ -87,14 +87,10 @@ export class Commander {
             if (commands[0].description)
                 result += commands[0].description + '\n';
 
-            result += '\n';
-
             if (commands[0].parameters)
-                result += commands[0].parameters
+                result += '\n' + commands[0].parameters
                     .map(param => `${param.name} - ${param.description || ''}`)
-                    .join('\n');
-
-            result += '\n';
+                    .join('\n') + '\n';
 
             return result;
         }
