@@ -9,7 +9,7 @@ const COMMAND_NAME_HELP = 'help';
 
 interface Options {
     readonly description?: string;
-    readonly parameters?: readonly Parameter<any>[];
+    readonly globalParams?: readonly Parameter<any>[];
     readonly globalArgs?: NodeJS.ReadOnlyDict<any>;
     readonly fallback?: CommandAction<any>;
 }
@@ -19,16 +19,23 @@ export class Commander {
 
     public readonly description: string;
     public readonly parameters: readonly Parameter<any>[];
-    public readonly globalArgs: NodeJS.Dict<any>;
 
+    private readonly _args: NodeJS.ReadOnlyDict<any>;
     private readonly _commands: NodeJS.Dict<Command<any>> = {};
     private readonly _fallbackCommand: Command<any>;
 
-    constructor(options: Options = {}) {
-        this.description = options.description || "";
-        this.parameters = options.parameters || [];
-        this.globalArgs = options.globalArgs || {};
+    private readonly _argsKeys: readonly string[];
 
+    constructor(options: Options = {}) {
+        const args: any = Object.assign({}, options.globalArgs);
+
+        if (options.globalParams)
+            options.globalParams.forEach(param => args[param.name] = param.parse(args[param.name]));
+
+        this.description = options.description || "";
+        this.parameters = Object.assign([], options.globalParams);
+        this._args = args;
+        this._argsKeys = Object.keys(args);
         this._fallbackCommand = {
             name: '',
             action: options.fallback || (async () => `Unknown command. Type '${COMMAND_NAME_HELP}' to list all known commands.\n`)
@@ -117,15 +124,18 @@ export class Commander {
         return result;
     }
 
-    private async executeCommand(commandLine: string, command: string, args?: any): Promise<any> {
+    private async executeCommand(commandLine: string, command: string, args = {}): Promise<any> {
         command = command.toLowerCase();
-        args = Object.assign({}, this.globalArgs, args);
 
         const stopwatch = new Stopwatch();
         const instance = this._commands[command] || this._fallbackCommand;
 
+        // manipulate args by command parameters
         if (instance.parameters)
             instance.parameters.forEach(param => args[param.name] = param.parse(args[param.name]));
+
+        // manipulate args by global args
+        this._argsKeys.forEach(key => args[key] = this._args[key]);
 
         stopwatch.start();
 
