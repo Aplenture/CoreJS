@@ -71,6 +71,12 @@ export function parseToBool(value: string | number | boolean | undefined): boole
     return false;
 }
 
+export function parseFromBool(value: any): string {
+    return value
+        ? STRING_TRUE
+        : STRING_FALSE;
+}
+
 export function parseToJSON<T>(data: string, def?: T): T {
     try {
         return JSON.parse(data) as T;
