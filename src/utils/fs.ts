@@ -14,6 +14,14 @@ const _require: (path: string) => any = (function () {
     }
 })();
 
+const readFileSync: (path: string, encoding?: string) => string = (function () {
+    try {
+        return eval("require('fs').readFileSync");
+    } catch (error) {
+        return null;
+    }
+})();
+
 export interface LoadModuleConfig {
     readonly class: string;
     readonly path: string;
@@ -39,16 +47,13 @@ export const loadModule = (function () {
 })();
 
 export const loadConfig = (function () {
-    if (!_require)
+    if (!readFileSync)
         return function () { throw new Error('method not supported'); }
 
     return function loadConfig<T>(name = 'config.json'): T {
         const path = `${cwd}/${name}`;
+        const content = readFileSync(path, 'utf8');
 
-        try {
-            return _require(path);
-        } catch (error) {
-            throw new Error(`Cannot find config '${path}'`);
-        }
+        return JSON.parse(content);
     }
 })();
