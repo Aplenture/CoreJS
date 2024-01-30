@@ -1,5 +1,5 @@
 {
-    "name": "<my_repository_name>",
+    "name": "corejs",
     "version": "0.1.0",
     "description": "",
     "main": "dist/index.js",
@@ -14,16 +14,15 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Aplenture/<my_repository_name>.git"
+        "url": "git+https://github.com/Aplenture/CoreJS.git"
     },
     "author": "Aplenture",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/Aplenture/<my_repository_name>/issues"
+        "url": "https://github.com/Aplenture/CoreJS/issues"
     },
-    "homepage": "https://github.com/Aplenture/<my_repository_name>#readme",
+    "homepage": "https://github.com/Aplenture/CoreJS#readme",
     "dependencies": {
-        "corejs": "github:Aplenture/CoreJS"
     },
     "devDependencies": {
         "@types/chai": "^4.3.4",

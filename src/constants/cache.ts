@@ -5,5 +5,4 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-export * as Core from "./core";
-export * as Event from "./event";
+export const CACHE_INIT = "cache_init";

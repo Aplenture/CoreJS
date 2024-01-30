@@ -5,5 +5,5 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-export * as Core from "./core";
-export * as Event from "./event";
+export const COMMAND_GET = "command_get";
+export const COMMAND_SET = "command_set";

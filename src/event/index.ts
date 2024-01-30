@@ -5,5 +5,6 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-export * as Core from "./core";
-export * as Event from "./event";
+export * from "./action";
+export * from "./event";
+export * from "./handler";

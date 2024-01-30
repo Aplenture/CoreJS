@@ -1,1 +1,1 @@
-# <my_repository_name>
+# CoreJS

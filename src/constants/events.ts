@@ -5,5 +5,6 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-export * as Core from "./core";
-export * as Event from "./event";
+export const EVENT_ACTIVE_CHANGED = "event_active_changed";
+export const EVENT_CACHE_CHANGED = "event_cache_changed";
+export const EVENT_INIT = "event_init";
