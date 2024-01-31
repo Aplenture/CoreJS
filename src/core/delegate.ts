@@ -8,6 +8,8 @@
 type Callback<T> = (data: T) => void;
 
 export interface Delegatable<T> {
+    readonly length: number;
+
     readonly on: (...actions: Callback<T>[]) => void;
     readonly once: (action: Callback<T>) => void;
     readonly off: (action: Callback<T>) => void;
