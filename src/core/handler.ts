@@ -7,13 +7,26 @@
 
 import { Module } from "./module";
 
+/**Module to handle getter and setter. */
 export class Handler<T extends Handler<T>> extends Module<T> {
-    protected get<T>(key: string): T {
+    /**
+     * Returns value by key from parent if parent is set.
+     * Otherwise undefined is returned.
+     * @param key of value to return
+     * @returns value or undefined
+     */
+    public get<T>(key: string): T {
         if (this.parent)
             return this.parent.get(key);
     }
 
-    protected set(key: string, value: any) {
+    /**
+     * Sets a value by key from parent if parent is set.
+     * Otherwise nothing is done.
+     * @param key of value to set
+     * @param value of key to set
+     */
+    public set(key: string, value: any) {
         if (this.parent)
             this.parent.set(key, value);
     }

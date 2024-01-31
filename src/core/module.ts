@@ -9,24 +9,19 @@ import { Event } from "./event";
 import { Emitter } from "./emitter";
 
 /**
- * basic module class
- * contains parent handling
+ * Basic module class.
+ * Contains parent handling.
  */
 export class Module<T extends Module<T>> extends Emitter {
-    /**
-     * parent module
-     */
     private _parent: T = null;
 
-    /**
-     * parent module
-     */
+    /** Parent module. */
     public get parent() { return this._parent; }
     private set parent(value) { this._parent = value; }
 
     /**
-     * first calls removeFromParent()
-     * then changes the parent of a module to this
+     * First calls removeFromParent().
+     * Then changes the parent of a module to this.
      * @param child where to change the parent
      */
     public append(child: Module<Module<T>>) {
@@ -35,7 +30,7 @@ export class Module<T extends Module<T>> extends Emitter {
     }
 
     /**
-     * removes the parent if its a child from this
+     * Removes the parent if its a child from this.
      * @param child where to remove the parent
      */
     public depend(child: Module<Module<T>>) {
@@ -46,7 +41,7 @@ export class Module<T extends Module<T>> extends Emitter {
     }
 
     /**
-     * calls depend by parent if parent is set
+     * Calls depend by parent if parent is set.
      */
     public removeFromParent() {
         if (this.parent)
@@ -54,7 +49,7 @@ export class Module<T extends Module<T>> extends Emitter {
     }
 
     /**
-     * compares all parents with given object
+     * Compares all parents with given object.
      * @param parent to compare all parents
      * @returns true if some parent matches
      */
@@ -69,9 +64,9 @@ export class Module<T extends Module<T>> extends Emitter {
     }
 
     /**
-     * emits an event to parent if parent is set
+     * Emits an event to parent if parent is set.
      * @param event name of event
-     * @param args arguemtns of event, default is this
+     * @param args arguments of event, default is this
      * @param emitter emitter of event, default is this
      * @returns an event
      */

@@ -7,9 +7,7 @@
 
 export type DelegateCallback<T> = (data: T) => void;
 
-/**
- * delegate interface without invoke api
- */
+/** Delegate interface without invoke api. */
 export interface Delegatable<T> {
     readonly length: number;
 
@@ -18,9 +16,7 @@ export interface Delegatable<T> {
     readonly off: (action: DelegateCallback<T>) => void;
 }
 
-/**
- * allows multiple callback handling
- */
+/** Allows multiple callback handling. */
 export class Delegate<T> implements Delegatable<T> {
     private callbacks: DelegateCallback<T>[] = [];
 
@@ -28,13 +24,11 @@ export class Delegate<T> implements Delegatable<T> {
         this.on(...callbacks);
     }
 
-    /**
-     * number of callbacks
-     */
+    /** Number of callbacks. */
     public get length() { return this.callbacks.length; }
 
     /**
-     * adds an invokable callback
+     * Adds an invokable callback.
      * @param callback called on invoke
      */
     public on(...callback: DelegateCallback<T>[]) {
@@ -42,8 +36,8 @@ export class Delegate<T> implements Delegatable<T> {
     }
 
     /**
-     * adds an invokeable callback which is called once
-     * after fist call its removed automatically
+     * Adds an invokeable callback which is called once.
+     * After fist call its removed automatically.
      * @param callback called once on invoke
      */
     public once(callback: DelegateCallback<T>) {
@@ -56,7 +50,7 @@ export class Delegate<T> implements Delegatable<T> {
     }
 
     /**
-     * removes a callback
+     * Removes a callback.
      * @param callback will be removed
      */
     public off(callback: DelegateCallback<T>) {
@@ -64,7 +58,7 @@ export class Delegate<T> implements Delegatable<T> {
     }
 
     /**
-     * calls all added callbacks
+     * Calls all added callbacks.
      * @param args for callbacks
      */
     public invoke(args: T) {

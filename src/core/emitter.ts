@@ -6,11 +6,15 @@
  */
 
 /**
- * basic emitter class
- * contains name handling
+ * Basic emitter class.
+ * Contains name handling.
  */
 export class Emitter {
     constructor(public readonly name: string) { }
 
+    /**
+     * Returns the name.
+     * @returns the name
+     */
     public toString() { return this.name; }
 }

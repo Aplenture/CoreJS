@@ -12,9 +12,11 @@ import { EventHandler, HandlerConfig } from "./eventHandler";
 export type ActionCallback = (event: Event) => any;
 
 export interface ActionConfig extends HandlerConfig {
+    /** Called on event execution */
     readonly callback: ActionCallback;
 }
 
+/** Event handler shell for callbacks */
 export class ActionHandler extends EventHandler<Handler<any>> {
     protected readonly execute: ActionCallback;
 
