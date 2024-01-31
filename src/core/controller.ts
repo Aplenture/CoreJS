@@ -5,15 +5,13 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { Action, ActionConfig } from "../event/action";
+import { Action, ActionCallback, ActionConfig } from "../event/action";
 import { Handler as EventHandler } from "../event/handler";
 import { EVENT_ACTIVE_CHANGED } from "../constants";
 import { Emitter } from "./emitter";
 import { Handler as CoreHandler } from "./handler";
 import { Module } from "./module";
 import { Event } from "../event/event";
-
-type Execute = (event: Event) => Promise<void>;
 
 export class Controller<T extends Controller<T>> extends CoreHandler<T> {
     private _active = true;
@@ -74,7 +72,7 @@ export class Controller<T extends Controller<T>> extends CoreHandler<T> {
         this.eventHandlers.splice(index, 1);
     }
 
-    public on(event: string | ActionConfig | Execute, callback?: Execute) {
+    public on(event: string | ActionConfig | ActionCallback, callback?: ActionCallback) {
         if (typeof event == "string")
             this.append(new Action({ event, callback }));
         else if (event instanceof Function)
@@ -83,7 +81,7 @@ export class Controller<T extends Controller<T>> extends CoreHandler<T> {
             this.append(new Action(event));
     }
 
-    public once(event: string | ActionConfig | Execute, callback?: Execute) {
+    public once(event: string | ActionConfig | ActionCallback, callback?: ActionCallback) {
         if (typeof event == "string")
             this.append(new Action({ event, callback, once: true }));
         else if (event instanceof Function)

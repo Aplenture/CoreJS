@@ -51,5 +51,5 @@ export abstract class Handler<T extends CoreHandler<T>> extends CoreHandler<T> {
             this.parent.depend(this);
     }
 
-    protected abstract execute(event: Event): Promise<void>;
+    protected abstract execute(event: Event): any;
 }

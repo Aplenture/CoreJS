@@ -9,14 +9,14 @@ import { Handler as CoreHandler } from "../core/handler";
 import { Event } from "./event";
 import { Handler as EventHandler, HandlerConfig } from "./handler";
 
-type Execute = (event: Event) => Promise<void>;
+export type ActionCallback = (event: Event) => any;
 
 export interface ActionConfig extends HandlerConfig {
-    readonly callback: Execute;
+    readonly callback: ActionCallback;
 }
 
 export class Action extends EventHandler<CoreHandler<any>> {
-    protected readonly execute: Execute;
+    protected readonly execute: ActionCallback;
 
     constructor(config: ActionConfig) {
         super(config);

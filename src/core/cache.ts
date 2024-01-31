@@ -14,8 +14,8 @@ export class Cache extends Controller<any> {
     constructor(name: string, ...classes: string[]) {
         super(name, ...classes, "cache");
 
-        this.on(COMMAND_GET, async event => event.callback.invoke(this.get(event.args.key)));
-        this.on(COMMAND_SET, async event => this.set(event.args.key, event.args.value));
+        this.on(COMMAND_GET, event => event.onData.invoke(this.get(event.args.key)));
+        this.on(COMMAND_SET, event => this.set(event.args.key, event.args.value));
     }
 
     public get<T>(key: string): T {
