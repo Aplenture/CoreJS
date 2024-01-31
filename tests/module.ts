@@ -65,7 +65,7 @@ describe("Module", () => {
             expect(child2.parent).equals(parent2);
         });
 
-        it("calles depend() at parent", () => {
+        it("calls depend() at parent", () => {
             const parent1 = new MyModule("parent1");
             const parent2 = new MyModule("parent2");
 
@@ -84,7 +84,7 @@ describe("Module", () => {
             expect(child2.calledDepend).equals(false);
         });
 
-        it("calles removeFromParent() at children", () => {
+        it("calls removeFromParent() at children", () => {
             const parent1 = new MyModule("parent1");
             const parent2 = new MyModule("parent2");
 
@@ -137,7 +137,7 @@ describe("Module", () => {
             expect(child2.parent).equals(null);
         });
 
-        it("calles depend() at parent", () => {
+        it("calls depend() at parent", () => {
             const parent1 = new MyModule("parent1");
 
             const child1 = new MyModule("child1");
