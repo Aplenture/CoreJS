@@ -5,8 +5,8 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { Delegate } from "../core/delegate";
-import { Emitter } from "../core/emitter";
+import { Delegate } from "./delegate";
+import { Emitter } from "./emitter";
 
 export class Event {
     public readonly onData = new Delegate<any>();

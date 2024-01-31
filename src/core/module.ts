@@ -5,7 +5,7 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { Event } from "../event/event";
+import { Event } from "./event";
 import { Emitter } from "./emitter";
 
 /**

@@ -8,9 +8,9 @@
 import { EVENT_ACTIVE_CHANGED, CACHE_INIT, EVENT_INIT } from "../constants";
 import { Module } from "./module";
 import { Controller } from "./controller";
-import { Handler } from "../event/handler";
+import { EventHandler } from "./eventHandler";
 
-export class Routine extends Handler<Controller<any>> {
+export class Routine extends EventHandler<Controller<any>> {
     constructor(public readonly command: string) {
         super({ event: EVENT_ACTIVE_CHANGED, onParent: true });
     }

@@ -7,7 +7,7 @@
 
 import { expect } from "chai";
 import { Emitter, Module } from "../src/core";
-import { Event } from "../src/event/event";
+import { Event } from "../src";
 
 class MyModule extends Module<MyModule> {
     public calledDepend = false;

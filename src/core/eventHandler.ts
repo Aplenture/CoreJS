@@ -5,8 +5,8 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { Emitter } from "../core/emitter";
-import { Handler as CoreHandler } from "../core/handler";
+import { Emitter } from "./emitter";
+import { Handler } from "./handler";
 import { Event } from "./event";
 
 export interface HandlerConfig {
@@ -16,7 +16,7 @@ export interface HandlerConfig {
     readonly once?: boolean;
 }
 
-export abstract class Handler<T extends CoreHandler<T>> extends CoreHandler<T> {
+export abstract class EventHandler<T extends Handler<T>> extends Handler<T> {
     public readonly emitter?: Emitter;
     public readonly onParent?: boolean;
     public readonly once?: boolean;

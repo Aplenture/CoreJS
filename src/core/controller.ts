@@ -5,13 +5,13 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { Action, ActionCallback, ActionConfig } from "../event/action";
-import { Handler as EventHandler } from "../event/handler";
+import { ActionHandler, ActionCallback, ActionConfig } from "./actionHandler";
+import { EventHandler } from "./eventHandler";
 import { EVENT_ACTIVE_CHANGED } from "../constants";
 import { Emitter } from "./emitter";
 import { Handler as CoreHandler } from "./handler";
 import { Module } from "./module";
-import { Event } from "../event/event";
+import { Event } from "./event";
 
 export class Controller<T extends Controller<T>> extends CoreHandler<T> {
     private _active = true;
@@ -74,20 +74,20 @@ export class Controller<T extends Controller<T>> extends CoreHandler<T> {
 
     public on(event: string | ActionConfig | ActionCallback, callback?: ActionCallback) {
         if (typeof event == "string")
-            this.append(new Action({ event, callback }));
+            this.append(new ActionHandler({ event, callback }));
         else if (event instanceof Function)
-            this.append(new Action({ callback: event }));
+            this.append(new ActionHandler({ callback: event }));
         else
-            this.append(new Action(event));
+            this.append(new ActionHandler(event));
     }
 
     public once(event: string | ActionConfig | ActionCallback, callback?: ActionCallback) {
         if (typeof event == "string")
-            this.append(new Action({ event, callback, once: true }));
+            this.append(new ActionHandler({ event, callback, once: true }));
         else if (event instanceof Function)
-            this.append(new Action({ callback: event, once: true }));
+            this.append(new ActionHandler({ callback: event, once: true }));
         else
-            this.append(new Action(Object.assign(event, { once: true })));
+            this.append(new ActionHandler(Object.assign(event, { once: true })));
     }
 
     public off(event?: string | Emitter, emitter?: Emitter) {
