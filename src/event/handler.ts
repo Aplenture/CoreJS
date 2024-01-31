@@ -44,7 +44,8 @@ export abstract class Handler<T extends CoreHandler<T>> extends CoreHandler<T> {
         if (this.emitter != undefined && this.emitter != event.emitter)
             return;
 
-        event.append(this.execute(event));
+        Promise.resolve()
+            .then(() => this.execute(event));
 
         if (this.once)
             this.parent.depend(this);
