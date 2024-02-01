@@ -40,12 +40,17 @@ export abstract class EventHandler<T extends Handler<T>> extends Handler<T> {
      */
     public readonly once?: boolean;
 
-    constructor(config: HandlerConfig = {}) {
-        super(config.event);
+    /**
+     * @param config config or event name
+     */
+    constructor(config: HandlerConfig | string = {}) {
+        super(typeof config == "string" ? config : config.event);
 
-        this.emitter = config.emitter;
-        this.onParent = config.onParent;
-        this.once = config.once;
+        if (config instanceof Object) {
+            this.emitter = config.emitter;
+            this.onParent = config.onParent;
+            this.once = config.once;
+        }
     }
 
     /**

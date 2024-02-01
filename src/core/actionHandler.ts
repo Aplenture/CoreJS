@@ -13,17 +13,26 @@ export type ActionCallback = (event: Event) => any;
 
 export interface ActionConfig extends HandlerConfig {
     /** Called on event execution */
-    readonly callback: ActionCallback;
+    readonly callback?: ActionCallback;
 }
 
 /** Event handler shell for callbacks */
 export class ActionHandler extends EventHandler<Handler<any>> {
     protected readonly execute: ActionCallback;
 
-    constructor(config: ActionConfig) {
-        super(config);
+    /**
+     * @param config config, event name or callback
+     * @param callback callback
+     */
+    constructor(config: ActionConfig | string | ActionCallback, callback?: ActionCallback) {
+        super(!(config instanceof Function) && config);
 
-        this.execute = config.callback;
+        if (config instanceof Function)
+            this.execute = config;
+        else if (config instanceof Object && config.callback instanceof Function)
+            this.execute = config.callback;
+        else if (callback instanceof Function)
+            this.execute = callback
 
         if (!(this.execute instanceof Function))
             throw new Error('invalid callback function');

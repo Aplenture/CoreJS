@@ -36,6 +36,27 @@ class MyHandler extends EventHandler<Handler<any>> {
 }
 
 describe("EventHandler", () => {
+    describe("constructor()", () => {
+        it("instantiates with config", () => {
+            const emitter = new Emitter("emitter");
+            const handler = new MyHandler({ event: "event", emitter, onParent: true, once: true });
+
+            expect(handler.name).equals("event");
+            expect(handler.emitter).equals(emitter);
+            expect(handler.onParent).equals(true);
+            expect(handler.once).equals(true);
+        });
+
+        it("instantiates with event name only", () => {
+            const handler = new MyHandler("event");
+
+            expect(handler.name).equals("event");
+            expect(handler.emitter).is.undefined;
+            expect(handler.onParent).is.undefined;
+            expect(handler.once).is.undefined;
+        });
+    });
+
     describe("handleEvent()", () => {
         it("calls execute()", done => {
             const handler = new MyHandler();

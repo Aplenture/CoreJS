@@ -19,11 +19,21 @@ describe("Event", () => {
                 .then(data => expect(data).equals(1))
                 .then(() => done())
                 .catch(done);
-
-            event.onData.invoke(2);
         });
 
-        it("returns next propagated data", done => {
+        it("returns latest propagated data if already propagated", done => {
+            const event = new Event("event", {}, new Emitter("emitter"));
+
+            event.onData.invoke(1);
+            event.onData.invoke(2);
+
+            event.data
+                .then(data => expect(data).equals(2))
+                .then(() => done())
+                .catch(done);
+        });
+
+        it("returns first propagated data if not already propagated", done => {
             const event = new Event("event", {}, new Emitter("emitter"));
 
             event.data
