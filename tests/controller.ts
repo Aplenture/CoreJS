@@ -10,7 +10,7 @@ import { Controller, Emitter, Event, EventHandler } from "../src";
 
 class MyHandler extends EventHandler<any> {
     public value = 0;
-    public readonly execute = (event: Event) => { this.value += event.args.value; };
+    public readonly execute = async (event: Event) => this.value += event.args.value;
 }
 
 describe("Controller", () => {
@@ -167,7 +167,7 @@ describe("Controller", () => {
 
             let result = 0;
 
-            controller.on(event => result += event.args.value);
+            controller.on(async event => result += event.args.value);
 
             controller.emit("other", { value: 1 });
             controller.emit("event", { value: 2 });
@@ -184,7 +184,7 @@ describe("Controller", () => {
 
             let result = 0;
 
-            controller.on("event", event => result += event.args.value);
+            controller.on("event", async event => result += event.args.value);
 
             controller.emit("other", { value: 1 });
             controller.emit("event", { value: 2 });
@@ -210,7 +210,7 @@ describe("Controller", () => {
                 event: "event",
                 emitter,
                 once: true,
-                callback: event => result += event.args.value
+                callback: async event => result += event.args.value
             });
 
             receiver.emit("event", { value: 1 });
@@ -294,8 +294,8 @@ describe("Controller", () => {
 
             let result = 0;
 
-            controller.on(event => result += event.args.value);
-            controller.on("event", event => result += event.args.value);
+            controller.on(async event => result += event.args.value);
+            controller.on("event", async event => result += event.args.value);
 
             controller.off();
 
@@ -314,10 +314,10 @@ describe("Controller", () => {
             let result = 0;
 
             parent.append(child);
-            parent.on(event => result += event.args.value);
-            parent.on("event", event => result += event.args.value);
+            parent.on(async event => result += event.args.value);
+            parent.on("event", async event => result += event.args.value);
 
-            child.on("event", event => result += event.args.value);
+            child.on("event", async event => result += event.args.value);
 
             parent.off();
 
@@ -334,9 +334,9 @@ describe("Controller", () => {
 
             let result = 0;
 
-            controller.on(event => result += event.args.value);
-            controller.on("event", event => result += event.args.value);
-            controller.on("event", event => result += event.args.value);
+            controller.on(async event => result += event.args.value);
+            controller.on("event", async event => result += event.args.value);
+            controller.on("event", async event => result += event.args.value);
 
             controller.off("event");
 
@@ -354,9 +354,9 @@ describe("Controller", () => {
 
             let result = 0;
 
-            controller.on({ emitter }, event => result += event.args.value);
-            controller.on({ event: "event", emitter }, event => result += event.args.value);
-            controller.on("event", event => result += event.args.value);
+            controller.on({ emitter }, async event => result += event.args.value);
+            controller.on({ event: "event", emitter }, async event => result += event.args.value);
+            controller.on("event", async event => result += event.args.value);
 
             controller.off(emitter);
 
@@ -374,9 +374,9 @@ describe("Controller", () => {
 
             let result = 0;
 
-            controller.on({ emitter }, event => result += event.args.value);
-            controller.on({ event: "event", emitter }, event => result += event.args.value);
-            controller.on("event", event => result += event.args.value);
+            controller.on({ emitter }, async event => result += event.args.value);
+            controller.on({ event: "event", emitter }, async event => result += event.args.value);
+            controller.on("event", async event => result += event.args.value);
 
             controller.off("event", emitter);
 

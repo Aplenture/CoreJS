@@ -9,7 +9,7 @@ import { Handler } from "./handler";
 import { Event } from "./event";
 import { EventHandler, HandlerConfig } from "./eventHandler";
 
-export type ActionCallback = (event: Event) => any;
+export type ActionCallback = (event: Event) => Promise<any>;
 
 export interface ActionConfig extends HandlerConfig {
     /** Called on event execution */

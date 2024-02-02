@@ -29,7 +29,7 @@ class MyHandler extends EventHandler<Handler<any>> {
         this.children.forEach(child => child.handleEvent(event));
     }
 
-    protected execute(event: Event) {
+    protected async execute(event: Event) {
         this.event = event;
         this.counter++;
     }
@@ -41,37 +41,56 @@ describe("EventHandler", () => {
             const emitter = new Emitter("emitter");
             const handler = new MyHandler({ event: "event", emitter, onParent: true, once: true });
 
-            expect(handler.name).equals("event");
-            expect(handler.emitter).equals(emitter);
-            expect(handler.onParent).equals(true);
-            expect(handler.once).equals(true);
+            expect(handler.name, "name").equals("event");
+            expect(handler.emitter, "emitter").equals(emitter);
+            expect(handler.onParent, "onParent").equals(true);
+            expect(handler.once, "once").equals(true);
         });
 
         it("instantiates with event name only", () => {
             const handler = new MyHandler("event");
 
-            expect(handler.name).equals("event");
-            expect(handler.emitter).is.undefined;
-            expect(handler.onParent).is.undefined;
-            expect(handler.once).is.undefined;
+            expect(handler.name, "name").equals("event");
+            expect(handler.emitter, "emitter").is.undefined;
+            expect(handler.onParent, "onParent").is.undefined;
+            expect(handler.once, "once").is.false;
         });
     });
 
     describe("handleEvent()", () => {
-        it("calls execute()", done => {
+        it("calls execute()", () => {
             const handler = new MyHandler();
             const event = new Event("event", {}, new Emitter("emitter"));
 
             handler.handleEvent(event);
 
-            Promise.resolve()
+            expect(handler.event).equals(event);
+        });
+
+        it("retains event", () => {
+            const handler = new MyHandler();
+            const event = new Event("event", {}, new Emitter("emitter"));
+
+            handler.handleEvent(event);
+
+            expect(event.retains).equals(1);
+        });
+
+        it("releases event", done => {
+            const handler = new MyHandler();
+            const event = new Event("event", {}, new Emitter("emitter"));
+
+            event
+                .await()
                 .then(() => expect(handler.event).equals(event))
                 .then(() => done())
                 .catch(done);
+
+            handler.handleEvent(event);
         });
 
-        it("delays execute() call", () => {
-            const handler = new MyHandler();
+        it("skips execute() on missmatching event emitter", () => {
+            const handler = new MyHandler({ event: "other" });
             const event = new Event("event", {}, new Emitter("emitter"));
 
             handler.handleEvent(event);
@@ -79,68 +98,45 @@ describe("EventHandler", () => {
             expect(handler.event).is.undefined;
         });
 
-        it("skips execute() on missmatching event emitter", done => {
-            const handler = new MyHandler({ event: "other" });
-            const event = new Event("event", {}, new Emitter("emitter"));
-
-            handler.handleEvent(event);
-
-            Promise.resolve()
-                .then(() => expect(handler.event).is.undefined)
-                .then(() => done())
-                .catch(done);
-        });
-
-        it("calls execute() on matching event emitter", done => {
+        it("calls execute() on matching event emitter", () => {
             const handler = new MyHandler({ event: "event" });
             const event = new Event("event", {}, new Emitter("emitter"));
 
             handler.handleEvent(event);
 
-            Promise.resolve()
-                .then(() => expect(handler.event).equals(event))
-                .then(() => done())
-                .catch(done);
+
+            expect(handler.event).equals(event);
         });
 
-        it("skips execute() on missmatching event emitter", done => {
+        it("skips execute() on missmatching event emitter", () => {
             const handler = new MyHandler({ emitter: new Emitter("emitter") });
             const event = new Event("event", {}, new Emitter("emitter"));
 
             handler.handleEvent(event);
 
-            Promise.resolve()
-                .then(() => expect(handler.event).is.undefined)
-                .then(() => done())
-                .catch(done);
+            expect(handler.event).is.undefined;
         });
 
-        it("calls execute() on matching event emitter", done => {
+        it("calls execute() on matching event emitter", () => {
             const emitter = new Emitter("emitter");
             const handler = new MyHandler({ emitter });
             const event = new Event("event", {}, emitter);
 
             handler.handleEvent(event);
 
-            Promise.resolve()
-                .then(() => expect(handler.event).equals(event))
-                .then(() => done())
-                .catch(done);
+            expect(handler.event).equals(event);
         });
 
-        it("skips execute() on missmatching parent", done => {
+        it("skips execute() on missmatching parent", () => {
             const handler = new MyHandler({ onParent: true });
             const event = new Event("event", {}, new Emitter("emitter"));
 
             handler.handleEvent(event);
 
-            Promise.resolve()
-                .then(() => expect(handler.event).is.undefined)
-                .then(() => done())
-                .catch(done);
+            expect(handler.event).is.undefined;
         });
 
-        it("calls execute() on matching parent", done => {
+        it("calls execute() on matching parent", () => {
             const module = new Module<any>("module");
             const handler = new MyHandler({ onParent: true });
             const event = new Event("event", {}, module);
@@ -148,13 +144,10 @@ describe("EventHandler", () => {
             module.append(handler);
             handler.handleEvent(event);
 
-            Promise.resolve()
-                .then(() => expect(handler.event).equals(event))
-                .then(() => done())
-                .catch(done);
+            expect(handler.event).equals(event);
         });
 
-        it("calls execute() once if set", done => {
+        it("calls execute() once if set", () => {
             const parent = new MyHandler();
             const child = new MyHandler({ once: true });
             const event = new Event("event", {}, parent);
@@ -164,10 +157,7 @@ describe("EventHandler", () => {
             parent.handleEvent(event);
             parent.handleEvent(event);
 
-            Promise.resolve()
-                .then(() => expect(child.counter).equals(1))
-                .then(() => done())
-                .catch(done);
+            expect(child.counter).equals(1);
         });
     });
 });

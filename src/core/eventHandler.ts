@@ -9,6 +9,12 @@ import { Emitter } from "./emitter";
 import { Handler } from "./handler";
 import { Event } from "./event";
 
+enum State {
+    Infinite = 1,
+    Once,
+    Removing
+}
+
 export interface HandlerConfig {
     /** If set execute() is called by events with this name only. */
     readonly event?: string;
@@ -34,11 +40,8 @@ export abstract class EventHandler<T extends Handler<T>> extends Handler<T> {
     /** If set execute() is called by parents only. */
     public readonly onParent?: boolean;
 
-    /**
-     * If set execute() is called only once.
-     * After that removeFromParent() is called.
-     */
-    public readonly once?: boolean;
+    /** If true removeFromParent() is called after first execute() call. */
+    private _state = State.Infinite;
 
     /**
      * @param config config or event name
@@ -49,9 +52,18 @@ export abstract class EventHandler<T extends Handler<T>> extends Handler<T> {
         if (config instanceof Object) {
             this.emitter = config.emitter;
             this.onParent = config.onParent;
-            this.once = config.once;
+
+            if (config.once)
+                this.state = State.Once;
         }
     }
+
+    /** Returns the current state. */
+    public get state() { return this._state; }
+    private set state(value) { this._state = value; }
+
+    /** Returns whether event is called only once. */
+    public get once() { return this.state != State.Infinite; }
 
     /**
      * Emits an event to parent if parent is set.
@@ -83,19 +95,27 @@ export abstract class EventHandler<T extends Handler<T>> extends Handler<T> {
         if (this.emitter != undefined && this.emitter != event.emitter)
             return;
 
-        // delay execution
-        // to let other handler prepare the event handling
-        Promise.resolve()
-            .then(() => this.execute(event));
+        // skip if handler is removing from parent
+        if (this.state == State.Removing)
+            return;
 
-        // remove from parent if once is true
-        if (this.once)
-            this.removeFromParent();
+        // change state to removing if once is enabled
+        if (this.state == State.Once)
+            this.state = State.Removing;
+
+        // retain event before execution
+        event.retain();
+
+        this.execute(event)
+            // if state is removing, remove from parent after execution
+            .then(() => this.state == State.Removing && this.removeFromParent())
+            // release event after execution
+            .then(() => event.release());
     }
 
     /**
      * Is called when event properties are matching.
      * @param event
      */
-    protected abstract execute(event: Event): any;
+    protected abstract execute(event: Event): Promise<any>;
 }

@@ -9,11 +9,25 @@ import { expect } from "chai";
 import { Emitter, Event } from "../src";
 
 describe("Event", () => {
-    describe("data", () => {
+    describe("onData", () => {
+        it("sends multiple data", () => {
+            const event = new Event("event", {}, new Emitter("emitter"));
+
+            let result = 0;
+
+            event.onData.on(data => result += data);
+            event.send(1);
+            event.send(2);
+
+            expect(result).equals(3);
+        });
+    });
+
+    describe("await()", () => {
         it("returns already propagated data", done => {
             const event = new Event("event", {}, new Emitter("emitter"));
 
-            event.onData.invoke(1);
+            event.send(1);
 
             event
                 .await()
@@ -25,8 +39,8 @@ describe("Event", () => {
         it("returns latest propagated data if already propagated", done => {
             const event = new Event("event", {}, new Emitter("emitter"));
 
-            event.onData.invoke(1);
-            event.onData.invoke(2);
+            event.send(1);
+            event.send(2);
 
             event
                 .await()
@@ -34,9 +48,29 @@ describe("Event", () => {
                 .then(() => done())
                 .catch(done);
         });
+    });
 
-        it("returns first propagated data if not already propagated", done => {
+    describe("retain()", () => {
+        it("delays resolving until release()", done => {
             const event = new Event("event", {}, new Emitter("emitter"));
+
+            event.retain();
+            event
+                .await()
+                .then(data => expect(data).equals(1))
+                .then(() => done())
+                .catch(done);
+
+            event.send(1);
+            event.release();
+        });
+
+        it("allows multiple calls", done => {
+            const event = new Event("event", {}, new Emitter("emitter"));
+
+            event.retain();
+            event.retain();
+            event.release();
 
             event
                 .await()
@@ -44,8 +78,8 @@ describe("Event", () => {
                 .then(() => done())
                 .catch(done);
 
-            event.onData.invoke(1);
-            event.onData.invoke(2);
+            event.send(1);
+            event.release();
         });
     });
 });

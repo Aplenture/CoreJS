@@ -20,8 +20,8 @@ export class CacheController extends Controller<any> {
         this.cache.onChange.on(data => this.emit(EVENT_CACHE_CHANGED, data));
 
         // add commands for cache handling
-        this.on(COMMAND_GET, event => event.send(this.get(event.args.key)));
-        this.on(COMMAND_SET, event => this.set(event.args.key, event.args.value));
+        this.on(COMMAND_GET, async event => event.send(this.get(event.args.key)));
+        this.on(COMMAND_SET, async event => this.set(event.args.key, event.args.value));
     }
 
     /**

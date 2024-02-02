@@ -17,7 +17,7 @@ describe("CacheController", () => {
 
                 let changes;
 
-                controller.on(EVENT_CACHE_CHANGED, event => changes = event.args);
+                controller.on(EVENT_CACHE_CHANGED, async event => changes = event.args);
                 controller.set("test", 1);
                 controller.set("other", 2);
 
@@ -36,7 +36,7 @@ describe("CacheController", () => {
 
                 let changes;
 
-                controller.on(EVENT_CACHE_CHANGED, event => changes = event.args);
+                controller.on(EVENT_CACHE_CHANGED, async event => changes = event.args);
                 controller.set("three", 3);
                 controller.deserialze(data);
 

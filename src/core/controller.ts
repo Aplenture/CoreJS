@@ -167,7 +167,15 @@ export class Controller<T extends Controller<T>> extends Handler<T> {
 
         // otherwise propagate event to sub event handlers
         const instance = new Event(event, args, emitter);
-        this.handleEvent(instance);
+
+        // retain event until event handling
+        instance.retain();
+
+        Promise.resolve()
+            // delay event handling until emitter received event
+            .then(() => this.handleEvent(instance))
+            // release event after event handling
+            .then(() => instance.release());
 
         return instance;
     }

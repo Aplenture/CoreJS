@@ -16,61 +16,61 @@ describe("ActionHandler", () => {
     describe("constructor()", () => {
         it("instantiates with config", () => {
             const emitter = new Emitter("emitter");
-            const callback = () => { };
+            const callback = async () => { };
             const handler = new MyHandler({ event: "event", emitter, onParent: true, once: true, callback });
 
-            expect(handler.name).equals("event");
-            expect(handler.emitter).equals(emitter);
-            expect(handler.execute).equals(callback);
-            expect(handler.onParent).equals(true);
-            expect(handler.once).equals(true);
+            expect(handler.name, "name").equals("event");
+            expect(handler.emitter, "emitter").equals(emitter);
+            expect(handler.execute, "execute").equals(callback);
+            expect(handler.onParent, "onParent").equals(true);
+            expect(handler.once, "once").equals(true);
         });
 
         it("instantiates with callback only", () => {
-            const callback = () => { };
+            const callback = async () => { };
             const handler = new MyHandler(callback);
 
-            expect(handler.execute).equals(callback);
-            expect(handler.name).is.undefined;
-            expect(handler.emitter).is.undefined;
-            expect(handler.onParent).is.undefined;
-            expect(handler.once).is.undefined;
+            expect(handler.execute, "execute").equals(callback);
+            expect(handler.name, "name").is.undefined;
+            expect(handler.emitter, "emitter").is.undefined;
+            expect(handler.onParent, "onParent").is.undefined;
+            expect(handler.once, "once").is.false;
         });
 
         it("instantiates with event name and callback only", () => {
-            const callback = () => { };
+            const callback = async () => { };
             const handler = new MyHandler("event", callback);
 
-            expect(handler.name).equals("event");
-            expect(handler.execute).equals(callback);
-            expect(handler.emitter).is.undefined;
-            expect(handler.onParent).is.undefined;
-            expect(handler.once).is.undefined;
+            expect(handler.name, "name").equals("event");
+            expect(handler.execute, "execute").equals(callback);
+            expect(handler.emitter, "emitter").is.undefined;
+            expect(handler.onParent, "onParent").is.undefined;
+            expect(handler.once, "once").is.false;
         });
 
         it("ignores callback argument when first argument is callback", () => {
-            const callback1 = () => { };
-            const callback2 = () => { };
+            const callback1 = async () => { };
+            const callback2 = async () => { };
             const handler = new MyHandler(callback1, callback2);
 
-            expect(handler.execute).equals(callback1);
-            expect(handler.execute).not.equals(callback2);
+            expect(handler.execute, "execute").equals(callback1);
+            expect(handler.execute, "execute").not.equals(callback2);
         });
 
         it("ignores callback argument when first argument is config", () => {
-            const callback1 = () => { };
-            const callback2 = () => { };
+            const callback1 = async () => { };
+            const callback2 = async () => { };
             const handler = new MyHandler({ callback: callback1 }, callback2);
 
-            expect(handler.execute).equals(callback1);
-            expect(handler.execute).not.equals(callback2);
+            expect(handler.execute, "execute").equals(callback1);
+            expect(handler.execute, "execute").not.equals(callback2);
         });
     });
 
     describe("callback", () => {
         it("is called with event argument", done => {
             const event = new Event("event", {}, new Emitter("emitter"));
-            const handler = new ActionHandler(event => output = event);
+            const handler = new ActionHandler(async event => output = event);
 
             let output: Event;
 
@@ -88,7 +88,7 @@ describe("ActionHandler", () => {
             const handler = new ActionHandler({
                 event: event.name,
                 emitter,
-                callback: event => output = event,
+                callback: async event => output = event,
             });
 
             let output: Event;
