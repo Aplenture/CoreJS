@@ -91,7 +91,7 @@ export class Controller<T extends Controller<T>> extends Handler<T> {
 
     /**
      * Creates an ActionHandler.
-     * Appends it by calling append().
+     * Calls append() to append the created handler.
      * @param event name, config or callback from ActionHandler
      * @param callback from ActionHandler, not needed if event is callback already
      */
@@ -101,7 +101,7 @@ export class Controller<T extends Controller<T>> extends Handler<T> {
 
     /**
      * Creates an ActionHandler which is called only once.
-     * Appends it by calling append().
+     * Calls append() to append the created handler.
      * @param event name, config or callback from ActionHandler
      * @param callback from ActionHandler, not needed if event is callback already
      */
@@ -118,6 +118,7 @@ export class Controller<T extends Controller<T>> extends Handler<T> {
      * Removes EventHandler.
      * Controller will be ignored.
      * Removes all EventhHandler if neither event nor emitter are given.
+     * To remove the handler depend() is called.
      * @param event optional name or Emitter of all removing EventHandler
      * @param emitter optional emitter of all removing EventHandler
      */

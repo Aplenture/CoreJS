@@ -13,7 +13,7 @@ class MyHandler extends Handler<Handler<any>> {
         super(name);
     }
 
-    public get<T>(key: string): T {
+    public get<T>(key: string, _default?: T): T {
         return this.data[key];
     }
 

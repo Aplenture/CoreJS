@@ -9,11 +9,30 @@ export type DelegateCallback<T> = (data: T) => void;
 
 /** Delegate interface without invoke api. */
 export interface Delegatable<T> {
+    /** Number of added callbacks. */
     readonly length: number;
 
-    readonly on: (...actions: DelegateCallback<T>[]) => void;
-    readonly once: (action: DelegateCallback<T>) => void;
-    readonly off: (action: DelegateCallback<T>) => void;
+    /**
+     * Adds an invokable callback.
+     * @param callback called on invoke
+     */
+    readonly on: (...callbacks: DelegateCallback<T>[]) => void;
+
+    /**
+     * Adds an invokeable callback which is called once.
+     * After fist call its removed automatically.
+     * @param callback called once on invoke
+     */
+    readonly once: (callback: DelegateCallback<T>) => void;
+
+    /**
+     * Removes a callback.
+     * @param callback will be removed
+     */
+    readonly off: (callback: DelegateCallback<T>) => void;
+
+    /** Returns a promise to await next invoke. */
+    readonly await: () => Promise<T>;
 }
 
 /** Allows multiple callback handling. */
@@ -24,44 +43,34 @@ export class Delegate<T> implements Delegatable<T> {
         this.on(...callbacks);
     }
 
-    /** Number of callbacks. */
     public get length() { return this.callbacks.length; }
 
-    /**
-     * Adds an invokable callback.
-     * @param callback called on invoke
-     */
-    public on(...callback: DelegateCallback<T>[]) {
-        this.callbacks.push(...callback);
+    public on(...callbacks: DelegateCallback<T>[]) {
+        this.callbacks.push(...callbacks);
     }
 
-    /**
-     * Adds an invokeable callback which is called once.
-     * After fist call its removed automatically.
-     * @param callback called once on invoke
-     */
     public once(callback: DelegateCallback<T>) {
-        const tmp = args => {
-            callback(args);
+        const tmp = data => {
+            callback(data);
             this.off(tmp);
         };
 
-        this.callbacks.push(tmp);
+        this.on(tmp);
     }
 
-    /**
-     * Removes a callback.
-     * @param callback will be removed
-     */
     public off(callback: DelegateCallback<T>) {
         this.callbacks = this.callbacks.filter(tmp => tmp != callback);
     }
 
+    public await() {
+        return new Promise<T>(resolve => this.once(data => resolve(data)));
+    }
+
     /**
      * Calls all added callbacks.
-     * @param args for callbacks
+     * @param data for callbacks
      */
-    public invoke(args: T) {
-        this.callbacks.forEach(action => action(args));
+    public invoke(data: T) {
+        this.callbacks.forEach(action => action(data));
     }
 }

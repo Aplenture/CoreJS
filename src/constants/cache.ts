@@ -5,4 +5,5 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
+/** true when app is initialized */
 export const CACHE_INIT = "cache_init";

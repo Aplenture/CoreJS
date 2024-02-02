@@ -6,26 +6,26 @@
  */
 
 import { EVENT_INIT, CACHE_INIT } from "../constants";
-import { Cache } from "./cache";
+import { CacheController } from "./cacheController";
 import { Controller } from "./controller";
 
 export class App extends Controller<any> {
-    public readonly cache: Cache;
+    public readonly cacheController: CacheController;
 
     constructor(name: string, ...classes: string[]) {
         super(name, ...classes);
 
-        this.cache = new Cache(name, ...classes);
+        this.cacheController = new CacheController(name, ...classes);
 
-        this.append(this.cache);
+        this.append(this.cacheController);
     }
 
-    public get<T>(key: string): T {
-        return this.cache.get(key);
+    public get<T>(key: string, _default?: T): T {
+        return this.cacheController.get(key, _default);
     }
 
     public set(key: string, value: any) {
-        this.cache.set(key, value);
+        this.cacheController.set(key, value);
     }
 
     public init() {
@@ -33,7 +33,11 @@ export class App extends Controller<any> {
         this.emit(EVENT_INIT);
     }
 
-    public load(data: NodeJS.ReadOnlyDict<any>) {
-        this.cache.load(data);
+    public serialze() {
+        return this.cacheController.serialze();
+    }
+
+    public deserialze(data: string | NodeJS.ReadOnlyDict<any>) {
+        this.cacheController.deserialze(data);
     }
 }

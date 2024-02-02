@@ -18,6 +18,11 @@ export class Event {
 
     private _data;
 
+    /**
+     * @param name of the event
+     * @param args of the event
+     * @param emitter of the event
+     */
     constructor(
         public readonly name: string,
         public readonly args: NodeJS.ReadOnlyDict<any>,
@@ -25,6 +30,10 @@ export class Event {
     ) {
         this.onData.on(data => this.data = data);
     }
+
+    /** Latest propagated data by onData. */
+    public get data() { return this._data; }
+    private set data(value) { this._data = value; }
 
     /** Retuns event parameters as string. */
     public toString() { return `${this.emitter.name} >> ${this.name} ${Serialization.toString(this.args)}`; }
@@ -34,13 +43,21 @@ export class Event {
      * If data was already propagated last is returned.
      * Otherwise next is returned.
      */
-    public get data() {
-        return this._data === undefined
+    public await() {
+        return this.data === undefined
             // create promise for next propagated data
-            ? new Promise(resolve => this.onData.once(data => resolve(data)))
+            ? this.onData.await()
             // returns last propagated data
-            : Promise.resolve(this._data);
+            : Promise.resolve(this.data);
     }
 
-    private set data(value) { this._data = value; }
+    /** Sends data by calling invoke() from onData. */
+    public send(data: any) {
+        this.onData.invoke(data);
+    }
+
+    /** Sends message by calling invoke() from onMessage. */
+    public write(message: string) {
+        this.onMessage.invoke(message);
+    }
 }

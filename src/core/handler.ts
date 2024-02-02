@@ -13,11 +13,14 @@ export class Handler<T extends Handler<T>> extends Module<T> {
      * Returns value by key from parent if parent is set.
      * Otherwise undefined is returned.
      * @param key of value to return
+     * @param _default is returned when parent is not set
      * @returns value or undefined
      */
-    public get<T>(key: string): T {
+    public get<T>(key: string, _default?: T): T {
         if (this.parent)
-            return this.parent.get(key);
+            return this.parent.get(key, _default);
+
+        return _default;
     }
 
     /**

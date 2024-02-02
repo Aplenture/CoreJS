@@ -8,6 +8,7 @@
 export * from "./actionHandler";
 export * from "./app";
 export * from "./cache";
+export * from "./cacheController";
 export * from "./controller";
 export * from "./delegate";
 export * from "./emitter";
