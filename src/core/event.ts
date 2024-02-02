@@ -5,6 +5,7 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
+import { Serialization } from "../utils";
 import { Delegate } from "./delegate";
 import { Emitter } from "./emitter";
 
@@ -24,6 +25,9 @@ export class Event {
     ) {
         this.onData.on(data => this.data = data);
     }
+
+    /** Retuns event parameters as string. */
+    public toString() { return `${this.emitter.name} >> ${this.name} ${Serialization.toString(this.args)}`; }
 
     /**
      * Returns promise with propagated data.
