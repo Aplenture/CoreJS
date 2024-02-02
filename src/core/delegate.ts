@@ -50,12 +50,12 @@ export class Delegate<T> implements Delegatable<T> {
     }
 
     public once(callback: DelegateCallback<T>) {
-        const tmp = data => {
+        const onceCallback = data => {
             callback(data);
-            this.off(tmp);
+            this.off(onceCallback);
         };
 
-        this.on(tmp);
+        this.on(onceCallback);
     }
 
     public off(callback: DelegateCallback<T>) {
