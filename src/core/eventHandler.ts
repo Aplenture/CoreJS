@@ -5,8 +5,9 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { Handler } from "./handler";
 import { Event } from "./event";
+import { Controller } from "./controller";
+import { Module } from "./module";
 
 enum State {
     Infinite = 1,
@@ -30,7 +31,7 @@ export interface HandlerConfig {
  * Abstract class for event handling.
  * Decides on which event the handler is executed.
  */
-export abstract class EventHandler<T extends Handler<T>> extends Handler<T> {
+export abstract class EventHandler<T extends Controller<T>> extends Module<T> {
     /** If set execute() is called by emitter with this name only. */
     public readonly emitter?: string;
 
@@ -57,18 +58,6 @@ export abstract class EventHandler<T extends Handler<T>> extends Handler<T> {
 
     /** Returns whether event is called only once. */
     public get once() { return this.state != State.Infinite; }
-
-    /**
-     * Emits an event to parent if parent is set.
-     * @param event name of event
-     * @param args optional arguments of event
-     * @param emitter optional emitter of event
-     * @returns an event
-     */
-    public emit(event: string, args?: NodeJS.ReadOnlyDict<any>, emitter?: string, timestamp?: number): Event {
-        if (this.parent)
-            return this.parent.emit(event, args, emitter, timestamp);
-    }
 
     /** 
      * Decides on which event the handler is executed.

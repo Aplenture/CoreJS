@@ -6,9 +6,9 @@
  */
 
 import { expect } from "chai";
-import { Event, EventHandler, Handler, Module } from "../src";
+import { Controller, Event, EventHandler, Module } from "../src";
 
-class MyHandler extends EventHandler<Handler<any>> {
+class MyHandler extends EventHandler<Controller<any>> {
     public children: EventHandler<any>[] = [];
 
     public event: Event;
@@ -19,7 +19,7 @@ class MyHandler extends EventHandler<Handler<any>> {
         this.children.push(child);
     }
 
-    public depend(child: Module<Module<Handler<any>>>): void {
+    public depend(child: Module<Module<Controller<any>>>): void {
         super.depend(child);
         this.children = this.children.filter(tmp => child != tmp);
     }

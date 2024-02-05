@@ -12,6 +12,5 @@ export * from "./controller";
 export * from "./delegate";
 export * from "./event";
 export * from "./eventHandler";
-export * from "./handler";
 export * from "./module";
 export * from "./routine";

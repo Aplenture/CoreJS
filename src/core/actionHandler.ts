@@ -5,7 +5,7 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { Handler } from "./handler";
+import { Controller } from "./controller";
 import { Event } from "./event";
 import { EventHandler, HandlerConfig } from "./eventHandler";
 
@@ -17,7 +17,7 @@ export interface ActionConfig extends HandlerConfig {
 }
 
 /** Event handler shell for callbacks */
-export class ActionHandler extends EventHandler<Handler<any>> {
+export class ActionHandler extends EventHandler<Controller<any>> {
     protected readonly execute: ActionCallback;
 
     /**
