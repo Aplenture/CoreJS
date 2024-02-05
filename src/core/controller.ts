@@ -5,8 +5,8 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { ActionHandler, ActionCallback, ActionConfig } from "./actionHandler";
-import { EventHandler } from "./eventHandler";
+import { Action, ActionCallback, ActionConfig } from "./action";
+import { Handler } from "./handler";
 import { EVENT_ACTIVE_CHANGED } from "../constants";
 import { Module } from "./module";
 import { Event } from "./event";
@@ -21,7 +21,7 @@ interface OffOptions {
  */
 export class Controller<T extends Controller<T>> extends Module<T> {
     private _active = true;
-    private eventHandlers: Array<EventHandler<any>> = [];
+    private eventHandlers: Array<Handler<any>> = [];
 
     constructor(name: string, ...classes: string[]) {
         super([name].concat(classes).join("/"));
@@ -103,7 +103,7 @@ export class Controller<T extends Controller<T>> extends Module<T> {
             this.eventHandlers.push(child as any);
 
         // add EventHandler to sub handlers
-        if (child instanceof EventHandler)
+        if (child instanceof Handler)
             this.eventHandlers.push(child);
     }
 
@@ -130,7 +130,7 @@ export class Controller<T extends Controller<T>> extends Module<T> {
      * @param callback from ActionHandler, not needed if event is callback already
      */
     public on(event: string | ActionConfig | ActionCallback, callback?: ActionCallback) {
-        this.append(new ActionHandler(event, callback));
+        this.append(new Action(event, callback));
     }
 
     /**
@@ -141,11 +141,11 @@ export class Controller<T extends Controller<T>> extends Module<T> {
      */
     public once(event: string | ActionConfig | ActionCallback, callback?: ActionCallback) {
         if (typeof event == "string")
-            this.append(new ActionHandler({ event, callback, once: true }));
+            this.append(new Action({ event, callback, once: true }));
         else if (event instanceof Function)
-            this.append(new ActionHandler({ callback: event, once: true }));
+            this.append(new Action({ callback: event, once: true }));
         else
-            this.append(new ActionHandler(Object.assign(event, { once: true })));
+            this.append(new Action(Object.assign(event, { once: true })));
     }
 
     /**
@@ -164,7 +164,7 @@ export class Controller<T extends Controller<T>> extends Module<T> {
             const handler = this.eventHandlers[i];
 
             // skip if handler is not an EventHandler
-            if (!(handler instanceof EventHandler))
+            if (!(handler instanceof Handler))
                 continue;
 
             // skip missmatching event name

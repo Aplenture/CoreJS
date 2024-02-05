@@ -31,7 +31,7 @@ export interface HandlerConfig {
  * Abstract class for event handling.
  * Decides on which event the handler is executed.
  */
-export abstract class EventHandler<T extends Controller<T>> extends Module<T> {
+export abstract class Handler<T extends Controller<T>> extends Module<T> {
     /** If set execute() is called by emitter with this name only. */
     public readonly emitter?: string;
 

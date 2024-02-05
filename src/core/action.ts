@@ -7,7 +7,7 @@
 
 import { Controller } from "./controller";
 import { Event } from "./event";
-import { EventHandler, HandlerConfig } from "./eventHandler";
+import { Handler, HandlerConfig } from "./handler";
 
 export type ActionCallback = (event: Event) => Promise<any>;
 
@@ -17,7 +17,7 @@ export interface ActionConfig extends HandlerConfig {
 }
 
 /** Event handler shell for callbacks */
-export class ActionHandler extends EventHandler<Controller<any>> {
+export class Action extends Handler<Controller<any>> {
     protected readonly execute: ActionCallback;
 
     /**

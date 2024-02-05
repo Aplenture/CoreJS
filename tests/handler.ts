@@ -6,15 +6,15 @@
  */
 
 import { expect } from "chai";
-import { Controller, Event, EventHandler, Module } from "../src";
+import { Controller, Event, Handler, Module } from "../src";
 
-class MyHandler extends EventHandler<Controller<any>> {
-    public children: EventHandler<any>[] = [];
+class MyHandler extends Handler<Controller<any>> {
+    public children: Handler<any>[] = [];
 
     public event: Event;
     public counter = 0;
 
-    public append(child: EventHandler<any>): void {
+    public append(child: Handler<any>): void {
         super.append(child);
         this.children.push(child);
     }
@@ -35,7 +35,7 @@ class MyHandler extends EventHandler<Controller<any>> {
     }
 }
 
-describe("EventHandler", () => {
+describe("Handler", () => {
     describe("constructor()", () => {
         it("instantiates with config", () => {
             const emitter = "my emitter";

@@ -6,10 +6,10 @@
  */
 
 import { expect } from "chai";
-import { Controller, Event, EventHandler } from "../src";
+import { Controller, Event, Handler } from "../src";
 import { EVENT_ACTIVE_CHANGED } from "../src/constants";
 
-class MyHandler extends EventHandler<any> {
+class MyHandler extends Handler<any> {
     public timestamp: number;
     public value = 0;
 
