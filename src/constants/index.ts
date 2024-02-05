@@ -5,6 +5,5 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-export * from "./commands";
 export * from "./events";
 export * from "./cache";

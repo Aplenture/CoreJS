@@ -5,20 +5,27 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { EVENT_INIT, CACHE_INIT } from "../constants";
-import { CacheController } from "./cacheController";
+import { EVENT_INIT, CACHE_INIT, EVENT_CACHE_CHANGED } from "../constants";
+import { Cache } from "./cache";
 import { Controller } from "./controller";
 
 /** Basic Controller with cache handling. */
 export class App extends Controller<any> {
-    public readonly cacheController: CacheController;
+    public readonly cache = new Cache();
 
     constructor(name: string, ...classes: string[]) {
         super(name, ...classes);
 
-        this.cacheController = new CacheController(name, ...classes);
+        // emit all changes of cache
+        this.cache.onChange.on(data => this.emit(EVENT_CACHE_CHANGED, data));
+    }
 
-        this.append(this.cacheController);
+    /**
+     * Returns whether cache contains a value for a specific key.
+     * @param key of the value
+     */
+    public has(key: string) {
+        return this.cache.has(key);
     }
 
     /**
@@ -28,7 +35,7 @@ export class App extends Controller<any> {
      * @param _default if key is unset, default will be set and returned
      */
     public get<T>(key: string, _default?: T): T {
-        return this.cacheController.get(key, _default);
+        return this.cache.get(key, _default);
     }
 
     /**
@@ -38,7 +45,7 @@ export class App extends Controller<any> {
      * @param value of the key
      */
     public set(key: string, value: any) {
-        this.cacheController.set(key, value);
+        this.cache.set(key, value);
     }
 
     /**
@@ -52,7 +59,7 @@ export class App extends Controller<any> {
 
     /** Returns a JSON, containing the cache data. */
     public serialze() {
-        return this.cacheController.serialze();
+        return this.cache.serialze();
     }
 
     /**
@@ -61,6 +68,6 @@ export class App extends Controller<any> {
      * @param data JSON or object with cache data
      */
     public deserialze(data: string | NodeJS.ReadOnlyDict<any>) {
-        this.cacheController.deserialze(data);
+        this.cache.deserialze(data);
     }
 }

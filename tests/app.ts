@@ -7,7 +7,7 @@
 
 import { expect } from "chai";
 import { App } from "../src";
-import { CACHE_INIT, EVENT_INIT } from "../src/constants";
+import { CACHE_INIT, EVENT_CACHE_CHANGED, EVENT_INIT } from "../src/constants";
 
 describe("App", () => {
     describe("get/set", () => {
@@ -17,6 +17,22 @@ describe("App", () => {
             app.set("hello", "world");
 
             expect(app.get("hello")).equals("world");
+        });
+
+        it("emits changes", done => {
+            const app = new App("app");
+
+            let changes;
+
+            app.on(EVENT_CACHE_CHANGED, async event => changes = event.args);
+            app.set("test", 1);
+            app.set("other", 2);
+
+            Promise
+                .resolve()
+                .then(() => expect(changes).deep.equals({ "other": 2 }))
+                .then(() => done())
+                .catch(done);
         });
     });
 
@@ -52,6 +68,23 @@ describe("App", () => {
             app.deserialze({ hello: "world" });
 
             expect(app.get("hello")).equals("world");
+        });
+
+        it("emits all cache data", done => {
+            const data = { one: 1, two: "2" };
+            const app = new App("app");
+
+            let changes;
+
+            app.on(EVENT_CACHE_CHANGED, async event => changes = event.args);
+            app.set("three", 3);
+            app.deserialze(data);
+
+            Promise
+                .resolve()
+                .then(() => expect(changes).deep.equals(Object.assign({ "three": 3 }, data)))
+                .then(() => done())
+                .catch(done);
         });
     });
 });

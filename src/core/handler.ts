@@ -10,6 +10,17 @@ import { Module } from "./module";
 /**Module to handle getter and setter. */
 export class Handler<T extends Handler<T>> extends Module<T> {
     /**
+     * Returns whether value exists.
+     * @param key of the value
+     */
+    public has(key: string): boolean {
+        if (this.parent)
+            return this.parent.has(key);
+
+        return false;
+    }
+
+    /**
      * Returns value by key from parent if parent is set.
      * Otherwise undefined is returned.
      * @param key of value to return
