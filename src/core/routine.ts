@@ -12,7 +12,7 @@ import { EventHandler } from "./eventHandler";
 
 export class Routine extends EventHandler<Controller<any>> {
     constructor(public readonly command: string) {
-        super({ event: EVENT_ACTIVE_CHANGED, onParent: true });
+        super({ event: EVENT_ACTIVE_CHANGED });
     }
 
     public get running(): boolean { throw new Error('method not implemented'); }

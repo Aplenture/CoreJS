@@ -8,10 +8,14 @@
 import { ActionHandler, ActionCallback, ActionConfig } from "./actionHandler";
 import { EventHandler } from "./eventHandler";
 import { EVENT_ACTIVE_CHANGED } from "../constants";
-import { Emitter } from "./emitter";
 import { Handler } from "./handler";
 import { Module } from "./module";
 import { Event } from "./event";
+
+interface OffOptions {
+    readonly event?: string;
+    readonly emitter?: string;
+}
 
 /** 
  * Appends other event handlers to propagate events to them.
@@ -44,15 +48,10 @@ export class Controller<T extends Controller<T>> extends Handler<T> {
         if (this._active == value)
             return;
 
-        // emit before become inavitve
-        if (this._active)
-            this.emit(EVENT_ACTIVE_CHANGED);
-
         this._active = value;
 
-        // emit after become active
-        if (value)
-            this.emit(EVENT_ACTIVE_CHANGED);
+        // emit changes
+        this.emit(EVENT_ACTIVE_CHANGED);
     }
 
     /**
@@ -119,10 +118,13 @@ export class Controller<T extends Controller<T>> extends Handler<T> {
      * Controller will be ignored.
      * Removes all EventhHandler if neither event nor emitter are given.
      * To remove the handler depend() is called.
-     * @param event optional name or Emitter of all removing EventHandler
+     * @param event optional options with event and emitter names or name of all removing EventHandler
      * @param emitter optional emitter of all removing EventHandler
      */
-    public off(event?: string | Emitter, emitter?: Emitter) {
+    public off(event: OffOptions | string = {}, emitter?: string) {
+        const ev = typeof event == "object" ? event.event : event;
+        const em = typeof event == "object" && event.emitter !== undefined ? event.emitter : emitter;
+
         for (let i = this.eventHandlers.length - 1; i >= 0; --i) {
             const handler = this.eventHandlers[i];
 
@@ -131,15 +133,11 @@ export class Controller<T extends Controller<T>> extends Handler<T> {
                 continue;
 
             // skip missmatching event name
-            if (event != undefined && typeof event == "string" && event != handler.name)
-                continue;
-
-            // skip missmatching event emitter by event as emitter
-            if (event != undefined && event instanceof Emitter && event != handler.emitter)
+            if (ev != undefined && ev != handler.name)
                 continue;
 
             // skip missmatching event emitter by emitter as emitter
-            if (emitter != undefined && emitter != handler.emitter)
+            if (em != undefined && em != handler.emitter)
                 continue;
 
             this.depend(handler);
@@ -156,17 +154,18 @@ export class Controller<T extends Controller<T>> extends Handler<T> {
      * @param emitter of event
      * @returns Event
      */
-    public emit(event: string, args: NodeJS.ReadOnlyDict<any> = this, emitter: Emitter = this): Event {
+    public emit(event: string, args: NodeJS.ReadOnlyDict<any> = this, emitter: string = this.name, timestamp?: number): Event {
         // inactive Controllers may not propagate events
-        if (!this._active)
+        // except the deactivation event
+        if (!this._active && (event != EVENT_ACTIVE_CHANGED || args != this))
             throw new Error('inactive controller can not emit');
 
         // propagate to parent if set
         if (this.parent)
-            return this.parent.emit(event, args, emitter);
+            return this.parent.emit(event, args, emitter, timestamp);
 
         // otherwise propagate event to sub event handlers
-        const instance = new Event(event, args, emitter);
+        const instance = new Event(event, args, emitter, timestamp);
 
         // retain event until event handling
         instance.retain();
@@ -186,7 +185,8 @@ export class Controller<T extends Controller<T>> extends Handler<T> {
      */
     private handleEvent(event: Event) {
         // skip if inactive
-        if (!this._active)
+        // except the deactivation event
+        if (!this._active && (event.name != EVENT_ACTIVE_CHANGED || event.args != this))
             return;
 
         // propagate event to all sub event handlers

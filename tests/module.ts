@@ -6,7 +6,7 @@
  */
 
 import { expect } from "chai";
-import { Emitter, Event, Module } from "../src";
+import { Event, Module } from "../src";
 
 class MyModule extends Module<MyModule> {
     public calledDepend = false;
@@ -25,7 +25,7 @@ class MyModule extends Module<MyModule> {
         super.removeFromParent();
     }
 
-    public emit(event: string, args?: NodeJS.ReadOnlyDict<any>, emitter?: Emitter): Event {
+    public emit(event: string, args?: NodeJS.ReadOnlyDict<any>, emitter?: string): Event {
         this.calledEvent = event;
         this.eventArgs = args;
         this.eventEmitter = emitter;
@@ -154,38 +154,6 @@ describe("Module", () => {
         });
     });
 
-    describe("hasParent()", () => {
-        it("detects direct parent", () => {
-            const parent1 = new MyModule("parent1");
-            const child1 = new MyModule("child1");
-
-            parent1.append(child1);
-
-            expect(child1.hasParent(parent1)).equals(true);
-        });
-
-        it("detects inderect parent", () => {
-            const parent1 = new MyModule("parent1");
-            const parent2 = new MyModule("parent2");
-            const child1 = new MyModule("child1");
-
-            parent1.append(child1);
-            parent2.append(parent1);
-
-            expect(child1.hasParent(parent2)).equals(true);
-        });
-
-        it("detects wrong parent", () => {
-            const parent1 = new MyModule("parent1");
-            const parent2 = new MyModule("parent2");
-            const child1 = new MyModule("child1");
-
-            parent1.append(child1);
-
-            expect(child1.hasParent(parent2)).equals(false);
-        });
-    });
-
     describe("emit()", () => {
         it("emits event args to parent", () => {
             const parent1 = new MyModule("parent1");
@@ -196,7 +164,7 @@ describe("Module", () => {
 
             expect(parent1.calledEvent).equals("hello");
             expect(parent1.eventArgs).contains({ hello: "world" });
-            expect(parent1.eventEmitter).equals(child1);
+            expect(parent1.eventEmitter).equals(child1.name);
         });
     });
 });

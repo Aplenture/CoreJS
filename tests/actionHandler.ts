@@ -6,7 +6,7 @@
  */
 
 import { expect } from "chai";
-import { ActionHandler, Emitter, Event } from "../src";
+import { ActionHandler, Event } from "../src";
 
 class MyHandler extends ActionHandler {
     public readonly execute;
@@ -15,14 +15,13 @@ class MyHandler extends ActionHandler {
 describe("ActionHandler", () => {
     describe("constructor()", () => {
         it("instantiates with config", () => {
-            const emitter = new Emitter("emitter");
+            const emitter = "my emitter";
             const callback = async () => { };
-            const handler = new MyHandler({ event: "event", emitter, onParent: true, once: true, callback });
+            const handler = new MyHandler({ event: "event", emitter, once: true, callback });
 
             expect(handler.name, "name").equals("event");
             expect(handler.emitter, "emitter").equals(emitter);
             expect(handler.execute, "execute").equals(callback);
-            expect(handler.onParent, "onParent").equals(true);
             expect(handler.once, "once").equals(true);
         });
 
@@ -33,7 +32,6 @@ describe("ActionHandler", () => {
             expect(handler.execute, "execute").equals(callback);
             expect(handler.name, "name").is.undefined;
             expect(handler.emitter, "emitter").is.undefined;
-            expect(handler.onParent, "onParent").is.undefined;
             expect(handler.once, "once").is.false;
         });
 
@@ -44,7 +42,6 @@ describe("ActionHandler", () => {
             expect(handler.name, "name").equals("event");
             expect(handler.execute, "execute").equals(callback);
             expect(handler.emitter, "emitter").is.undefined;
-            expect(handler.onParent, "onParent").is.undefined;
             expect(handler.once, "once").is.false;
         });
 
@@ -69,7 +66,7 @@ describe("ActionHandler", () => {
 
     describe("callback", () => {
         it("is called with event argument", done => {
-            const event = new Event("event", {}, new Emitter("emitter"));
+            const event = new Event("event", {}, "emitter");
             const handler = new ActionHandler(async event => output = event);
 
             let output: Event;
@@ -83,7 +80,7 @@ describe("ActionHandler", () => {
         });
 
         it("allows to instantate by config", done => {
-            const emitter = new Emitter("emitter");
+            const emitter = "my emitter";
             const event = new Event("event", {}, emitter);
             const handler = new ActionHandler({
                 event: event.name,
@@ -95,7 +92,7 @@ describe("ActionHandler", () => {
 
             handler.handleEvent(new Event("other", {}, emitter));
             handler.handleEvent(event);
-            handler.handleEvent(new Event("event", {}, new Emitter("other")));
+            handler.handleEvent(new Event("event", {}, "other"));
 
             Promise.resolve()
                 .then(() => expect(output).equals(event))

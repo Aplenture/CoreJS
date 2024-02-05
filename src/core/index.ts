@@ -11,7 +11,6 @@ export * from "./cache";
 export * from "./cacheController";
 export * from "./controller";
 export * from "./delegate";
-export * from "./emitter";
 export * from "./event";
 export * from "./eventHandler";
 export * from "./handler";

@@ -6,3 +6,4 @@
  */
 
 export * as Serialization from "./serialization";
+export * as Time from "./time";

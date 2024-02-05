@@ -6,7 +6,7 @@
  */
 
 import { expect } from "chai";
-import { Emitter, Event, EventHandler, Handler, Module } from "../src";
+import { Event, EventHandler, Handler, Module } from "../src";
 
 class MyHandler extends EventHandler<Handler<any>> {
     public children: EventHandler<any>[] = [];
@@ -38,12 +38,11 @@ class MyHandler extends EventHandler<Handler<any>> {
 describe("EventHandler", () => {
     describe("constructor()", () => {
         it("instantiates with config", () => {
-            const emitter = new Emitter("emitter");
-            const handler = new MyHandler({ event: "event", emitter, onParent: true, once: true });
+            const emitter = "my emitter";
+            const handler = new MyHandler({ event: "event", emitter, once: true });
 
             expect(handler.name, "name").equals("event");
             expect(handler.emitter, "emitter").equals(emitter);
-            expect(handler.onParent, "onParent").equals(true);
             expect(handler.once, "once").equals(true);
         });
 
@@ -52,7 +51,6 @@ describe("EventHandler", () => {
 
             expect(handler.name, "name").equals("event");
             expect(handler.emitter, "emitter").is.undefined;
-            expect(handler.onParent, "onParent").is.undefined;
             expect(handler.once, "once").is.false;
         });
     });
@@ -60,7 +58,7 @@ describe("EventHandler", () => {
     describe("handleEvent()", () => {
         it("calls execute()", () => {
             const handler = new MyHandler();
-            const event = new Event("event", {}, new Emitter("emitter"));
+            const event = new Event("event", {}, "emitter");
 
             handler.handleEvent(event);
 
@@ -69,7 +67,7 @@ describe("EventHandler", () => {
 
         it("retains event", () => {
             const handler = new MyHandler();
-            const event = new Event("event", {}, new Emitter("emitter"));
+            const event = new Event("event", {}, "emitter");
 
             handler.handleEvent(event);
 
@@ -78,7 +76,7 @@ describe("EventHandler", () => {
 
         it("releases event", done => {
             const handler = new MyHandler();
-            const event = new Event("event", {}, new Emitter("emitter"));
+            const event = new Event("event", {}, "emitter");
 
             event
                 .await()
@@ -91,7 +89,7 @@ describe("EventHandler", () => {
 
         it("skips execute() on missmatching event emitter", () => {
             const handler = new MyHandler({ event: "other" });
-            const event = new Event("event", {}, new Emitter("emitter"));
+            const event = new Event("event", {}, "emitter");
 
             handler.handleEvent(event);
 
@@ -100,7 +98,7 @@ describe("EventHandler", () => {
 
         it("calls execute() on matching event emitter", () => {
             const handler = new MyHandler({ event: "event" });
-            const event = new Event("event", {}, new Emitter("emitter"));
+            const event = new Event("event", {}, "emitter");
 
             handler.handleEvent(event);
 
@@ -109,8 +107,8 @@ describe("EventHandler", () => {
         });
 
         it("skips execute() on missmatching event emitter", () => {
-            const handler = new MyHandler({ emitter: new Emitter("emitter") });
-            const event = new Event("event", {}, new Emitter("emitter"));
+            const handler = new MyHandler({ emitter: "handler emitter" });
+            const event = new Event("event", {}, "event emitter");
 
             handler.handleEvent(event);
 
@@ -118,7 +116,7 @@ describe("EventHandler", () => {
         });
 
         it("calls execute() on matching event emitter", () => {
-            const emitter = new Emitter("emitter");
+            const emitter = "my emitter";
             const handler = new MyHandler({ emitter });
             const event = new Event("event", {}, emitter);
 
@@ -127,30 +125,10 @@ describe("EventHandler", () => {
             expect(handler.event).equals(event);
         });
 
-        it("skips execute() on missmatching parent", () => {
-            const handler = new MyHandler({ onParent: true });
-            const event = new Event("event", {}, new Emitter("emitter"));
-
-            handler.handleEvent(event);
-
-            expect(handler.event).is.undefined;
-        });
-
-        it("calls execute() on matching parent", () => {
-            const module = new Module<any>("module");
-            const handler = new MyHandler({ onParent: true });
-            const event = new Event("event", {}, module);
-
-            module.append(handler);
-            handler.handleEvent(event);
-
-            expect(handler.event).equals(event);
-        });
-
         it("calls execute() once if set", () => {
             const parent = new MyHandler();
             const child = new MyHandler({ once: true });
-            const event = new Event("event", {}, parent);
+            const event = new Event("event", {}, parent.name);
 
             parent.append(child);
 

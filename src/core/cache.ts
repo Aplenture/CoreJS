@@ -49,7 +49,7 @@ export class Cache {
     public get<T>(key: string, _default?: T): T {
         // catch if key is not a string
         if (typeof key != "string")
-            throw new Error('key needs to be a string to retrun a value');
+            throw new Error('key needs to be a string to return a value');
 
         // set default if key is unset
         if (this.data[key] === undefined)

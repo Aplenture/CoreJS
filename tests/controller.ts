@@ -6,11 +6,17 @@
  */
 
 import { expect } from "chai";
-import { Controller, Emitter, Event, EventHandler } from "../src";
+import { Controller, Event, EventHandler } from "../src";
+import { EVENT_ACTIVE_CHANGED } from "../src/constants";
 
 class MyHandler extends EventHandler<any> {
+    public timestamp: number;
     public value = 0;
-    public readonly execute = async (event: Event) => this.value += event.args.value;
+
+    public readonly execute = async (event: Event) => {
+        this.timestamp = event.timestamp;
+        this.value += event.args.value;
+    }
 }
 
 describe("Controller", () => {
@@ -22,7 +28,7 @@ describe("Controller", () => {
         });
     });
 
-    describe("active", () => {
+    describe("active state", () => {
         it("returns true without parent", () => {
             const child = new Controller<any>("child");
 
@@ -113,6 +119,48 @@ describe("Controller", () => {
                 .catch(done);
         });
 
+        it("propagates deactivation", done => {
+            const parent = new Controller<any>("parent");
+            const child = new Controller<any>("child");
+
+            child.on(EVENT_ACTIVE_CHANGED, async event => {
+                expect(event.args.active).equals(false);
+                done();
+            });
+
+            parent.append(child);
+            parent.active = false;
+        });
+
+        it("propagates activation", done => {
+            const parent = new Controller<any>("parent");
+            const child = new Controller<any>("child");
+
+            parent.active = false;
+
+            Promise.resolve().then(() => {
+                child.on(EVENT_ACTIVE_CHANGED, async event => {
+                    expect(event.args.active).equals(true);
+                    done();
+                });
+
+                parent.append(child);
+                parent.active = true;
+            });
+        });
+
+        it("skip propagination when active has not changed", done => {
+            const parent = new Controller<any>("parent");
+            const child = new Controller<any>("child");
+
+            child.on(EVENT_ACTIVE_CHANGED, async () => done(new Error("event handler was called but nothing has changed")));
+
+            parent.append(child);
+            parent.active = true;
+
+            Promise.resolve().then(() => done());
+        });
+
         it("throws error on emitting when inactive", () => {
             const emitter = new Controller<any>("emitter");
             const receiver = new Controller<any>("receiver");
@@ -156,6 +204,21 @@ describe("Controller", () => {
                 .then(() => expect(emitterHandler.value).equals(3))
                 .then(() => expect(receiverHandler.value).equals(0))
                 .then(() => expect(parentHandler.value).equals(3))
+                .then(() => done())
+                .catch(done);
+        });
+
+        it("emits optional timestamp", done => {
+            const timestamp = new Date("2024-02-05").getTime();
+            const emitter = "emitter";
+            const controller = new Controller<any>("controller");
+            const handler = new MyHandler();
+
+            controller.append(handler);
+            controller.emit("event", { value: 2 }, emitter, timestamp);
+
+            Promise.resolve()
+                .then(() => expect(handler.timestamp).equals(timestamp))
                 .then(() => done())
                 .catch(done);
         });
@@ -208,7 +271,7 @@ describe("Controller", () => {
 
             receiver.on({
                 event: "event",
-                emitter,
+                emitter: emitter.name,
                 once: true,
                 callback: async event => result += event.args.value
             });
@@ -272,7 +335,7 @@ describe("Controller", () => {
 
             receiver.once({
                 event: "event",
-                emitter,
+                emitter: emitter.name,
                 callback: event => result += event.args.value
             });
 
@@ -349,7 +412,7 @@ describe("Controller", () => {
         });
 
         it("depends event handlers by emitter", done => {
-            const emitter = new Emitter("emitter");
+            const emitter = "my emitter";
             const controller = new Controller("controller");
 
             let result = 0;
@@ -358,7 +421,7 @@ describe("Controller", () => {
             controller.on({ event: "event", emitter }, async event => result += event.args.value);
             controller.on("event", async event => result += event.args.value);
 
-            controller.off(emitter);
+            controller.off(undefined, emitter);
 
             controller.emit("event", { value: 1 }, emitter);
 
@@ -369,7 +432,7 @@ describe("Controller", () => {
         });
 
         it("depends event handlers by event name and emitter", done => {
-            const emitter = new Emitter("emitter");
+            const emitter = "my emitter";
             const controller = new Controller("controller");
 
             let result = 0;

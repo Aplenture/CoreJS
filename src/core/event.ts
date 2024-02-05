@@ -5,13 +5,12 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { Serialization } from "../utils";
+import { Serialization, Time } from "../utils";
 import { Delegatable, Delegate } from "./delegate";
-import { Emitter } from "./emitter";
+import { Module } from "./module";
 
 export class Event {
     private readonly _onData = new Delegate<any>();
-    private readonly _onMessage = new Delegate<string>();
     private readonly onRelease = new Delegate<any>();
 
     private data;
@@ -21,11 +20,13 @@ export class Event {
      * @param name of the event
      * @param args of the event
      * @param emitter of the event
+     * @param timestamp of the event
      */
     constructor(
         public readonly name: string,
         public readonly args: NodeJS.ReadOnlyDict<any>,
-        public readonly emitter: Emitter
+        public readonly emitter: string,
+        public readonly timestamp = Date.now()
     ) {
         // sets data on sending
         this.onData.on(data => this.data = data);
@@ -38,11 +39,15 @@ export class Event {
     /** Propagates data. */
     public get onData(): Delegatable<any> { return this._onData; }
 
-    /** Propagates messages. */
-    public get onMessage(): Delegatable<string> { return this._onMessage; }
+    /** Retuns event properties as log. */
+    public toString() {
+        const time = Time.format("YYYY-MM-DD hh:mm:ss", new Date(this.timestamp));
+        const args = this.args instanceof Module
+            ? ""
+            : Serialization.toString(this.args);
 
-    /** Retuns event parameters as string. */
-    public toString() { return `${this.emitter.name} >> ${this.name} ${Serialization.toString(this.args)}`; }
+        return `${time} >> ${this.emitter} emits ${this.name} ${args}`;
+    }
 
     /** Returns promise to wait until event is released. */
     public await() {

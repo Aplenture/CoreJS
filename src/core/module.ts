@@ -6,14 +6,15 @@
  */
 
 import { Event } from "./event";
-import { Emitter } from "./emitter";
 
 /**
  * Basic module class.
  * Contains parent handling.
  */
-export class Module<T extends Module<T>> extends Emitter {
+export class Module<T extends Module<T>> {
     private _parent: T = null;
+
+    constructor(public readonly name: string) { }
 
     /** Parent module. */
     public get parent() { return this._parent; }
@@ -49,29 +50,14 @@ export class Module<T extends Module<T>> extends Emitter {
     }
 
     /**
-     * Compares all parents with given object.
-     * @param parent to compare all parents
-     * @returns true if some parent matches
-     */
-    public hasParent(parent): boolean {
-        if (!this.parent)
-            return false;
-
-        if (this.parent == parent)
-            return true;
-
-        return this.parent.hasParent(parent);
-    }
-
-    /**
      * Emits an event to parent if parent is set.
      * @param event name of event
      * @param args arguments of event, default is this
      * @param emitter emitter of event, default is this
      * @returns an event
      */
-    public emit(event: string, args: NodeJS.ReadOnlyDict<any> = this, emitter: Emitter = this): Event {
+    public emit(event: string, args: NodeJS.ReadOnlyDict<any> = this, emitter: string = this.name, timestamp?: number): Event {
         if (this.parent)
-            return this.parent.emit(event, args, emitter);
+            return this.parent.emit(event, args, emitter, timestamp);
     }
 }
