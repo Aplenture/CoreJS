@@ -5,6 +5,10 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
+/**
+ * Parses date to string with specific format.
+ * Example 1707136662666 to '2024-02-05 13:37:42.666'.
+ */
 export function format(format = "YYYY-MM-DD hh:mm:ss.mss", date = new Date()) {
     const year = date.getFullYear().toString();
     const month = (date.getMonth() + 1).toString();

@@ -5,10 +5,13 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
+/** 
+ * Parses args to string.
+ * Example { test: "hello world", enabled: true } to '--test hello world --enabled true'.
+ */
 export function toString(args: NodeJS.ReadOnlyDict<any> = {}): string {
     return "" + Object.keys(args)
         .filter(key => undefined !== args[key])
-        .sort((a, b) => a.localeCompare(b))
         .map(key => `--${key} ${args[key]}`)
         .join(' ');
 }
