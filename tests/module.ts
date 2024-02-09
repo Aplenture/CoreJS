@@ -14,6 +14,8 @@ class MyModule extends Module<MyModule> {
     public calledEvent: string;
     public eventArgs;
     public eventEmitter;
+    public calledOnAppended = false;
+    public calledOnDepended = false;
 
     public depend(child: Module<Module<MyModule>>): void {
         this.calledDepend = true;
@@ -31,6 +33,14 @@ class MyModule extends Module<MyModule> {
         this.eventEmitter = emitter;
 
         return super.emit(event, args, emitter);
+    }
+
+    protected onAppended(): void {
+        this.calledOnAppended = true;
+    }
+
+    protected onDepended(): void {
+        this.calledOnDepended = true;
     }
 }
 
@@ -100,6 +110,27 @@ describe("Module", () => {
 
             expect(child1.calledRemoveFromParent).equals(true);
             expect(child2.calledRemoveFromParent).equals(true);
+        });
+
+        it("calls onAppended()", () => {
+            const parent = new MyModule("parent");
+            const child = new MyModule("child");
+
+            parent.append(child);
+
+            expect(parent.calledOnAppended, "parent.calledOnAppended").is.false;
+            expect(child.calledOnAppended, "child.calledOnAppended").is.true;
+        });
+
+        it("calls onDepended()", () => {
+            const parent = new MyModule("parent");
+            const child = new MyModule("child");
+
+            parent.append(child);
+            parent.depend(child);
+
+            expect(parent.calledOnDepended, "parent.calledOnDepended").is.false;
+            expect(child.calledOnDepended, "child.calledOnDepended").is.true;
         });
     });
 

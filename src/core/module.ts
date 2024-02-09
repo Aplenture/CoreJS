@@ -26,8 +26,12 @@ export class Module<T extends Module<T>> {
      * @param child where to change the parent
      */
     public append(child: Module<Module<T>>) {
+        if (child.parent == this)
+            throw new Error('parent is already this');
+
         child.removeFromParent();
         child.parent = this;
+        child.onAppended();
     }
 
     /**
@@ -36,9 +40,10 @@ export class Module<T extends Module<T>> {
      */
     public depend(child: Module<Module<T>>) {
         if (child.parent != this)
-            throw new Error('wrong parent');
+            throw new Error('parent is not this');
 
         child.parent = null;
+        child.onDepended();
     }
 
     /**
@@ -60,4 +65,16 @@ export class Module<T extends Module<T>> {
         if (this.parent)
             return this.parent.emit(event, args, emitter, timestamp);
     }
+
+    /**
+     * Called when parent is set.
+     * It`s recommended to call super.onAppended().
+     */
+    protected onAppended() { }
+
+    /** 
+     * Called when parent is unset.
+     * It`s recommended to call super.onDepended().
+     */
+    protected onDepended() { }
 }

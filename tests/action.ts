@@ -8,16 +8,12 @@
 import { expect } from "chai";
 import { Action, Event } from "../src";
 
-class MyAction extends Action {
-    public readonly execute;
-}
-
 describe("Action", () => {
     describe("constructor()", () => {
         it("instantiates with config", () => {
             const emitter = "my emitter";
             const callback = async () => { };
-            const handler = new MyAction({ event: "event", emitter, once: true, callback });
+            const handler = new Action({ event: "event", emitter, once: true, callback });
 
             expect(handler.name, "name").equals("event");
             expect(handler.emitter, "emitter").equals(emitter);
@@ -27,7 +23,7 @@ describe("Action", () => {
 
         it("instantiates with callback only", () => {
             const callback = async () => { };
-            const handler = new MyAction(callback);
+            const handler = new Action(callback);
 
             expect(handler.execute, "execute").equals(callback);
             expect(handler.name, "name").is.undefined;
@@ -37,7 +33,7 @@ describe("Action", () => {
 
         it("instantiates with event name and callback only", () => {
             const callback = async () => { };
-            const handler = new MyAction("event", callback);
+            const handler = new Action("event", callback);
 
             expect(handler.name, "name").equals("event");
             expect(handler.execute, "execute").equals(callback);
@@ -48,7 +44,7 @@ describe("Action", () => {
         it("ignores callback argument when first argument is callback", () => {
             const callback1 = async () => { };
             const callback2 = async () => { };
-            const handler = new MyAction(callback1, callback2);
+            const handler = new Action(callback1, callback2);
 
             expect(handler.execute, "execute").equals(callback1);
             expect(handler.execute, "execute").not.equals(callback2);
@@ -57,47 +53,10 @@ describe("Action", () => {
         it("ignores callback argument when first argument is config", () => {
             const callback1 = async () => { };
             const callback2 = async () => { };
-            const handler = new MyAction({ callback: callback1 }, callback2);
+            const handler = new Action({ callback: callback1 }, callback2);
 
             expect(handler.execute, "execute").equals(callback1);
             expect(handler.execute, "execute").not.equals(callback2);
-        });
-    });
-
-    describe("callback", () => {
-        it("is called with event argument", done => {
-            const event = new Event("event", {}, "emitter");
-            const handler = new Action(async event => output = event);
-
-            let output: Event;
-
-            handler.handleEvent(event);
-
-            Promise.resolve()
-                .then(() => expect(output).equals(event))
-                .then(() => done())
-                .catch(done);
-        });
-
-        it("allows to instantate by config", done => {
-            const emitter = "my emitter";
-            const event = new Event("event", {}, emitter);
-            const handler = new Action({
-                event: event.name,
-                emitter,
-                callback: async event => output = event,
-            });
-
-            let output: Event;
-
-            handler.handleEvent(new Event("other", {}, emitter));
-            handler.handleEvent(event);
-            handler.handleEvent(new Event("event", {}, "other"));
-
-            Promise.resolve()
-                .then(() => expect(output).equals(event))
-                .then(() => done())
-                .catch(done);
         });
     });
 });

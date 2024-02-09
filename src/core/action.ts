@@ -18,7 +18,7 @@ export interface ActionConfig extends HandlerConfig {
 
 /** Event handler shell for callbacks */
 export class Action extends Handler<Controller<any>> {
-    protected readonly execute: ActionCallback;
+    public readonly execute: ActionCallback;
 
     /**
      * @param config config, event name or callback
