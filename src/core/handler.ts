@@ -69,4 +69,21 @@ export abstract class Handler<T extends Controller<T>> extends Module<T> {
      * It`s recommended to call super.onDisabled().
      */
     public onDisabled() { }
+
+    public toJSON(): NodeJS.Dict<any> {
+        const data = super.toJSON();
+
+        // serialize state
+        data.state = this.state;
+
+        return data;
+    }
+
+    public fromJSON(data: NodeJS.ReadOnlyDict<any>): void {
+        super.fromJSON(data);
+
+        // deserialize state
+        if (data.state)
+            this.state = data.state;
+    }
 }

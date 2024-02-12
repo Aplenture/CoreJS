@@ -22,38 +22,6 @@ describe("Cache", () => {
         });
     });
 
-    describe("toJSON()", () => {
-        it("returns a copy of cache data", () => {
-            const data = { hello: "world" };
-            const cache = new Cache(data);
-            const json = cache.toJSON();
-
-            expect(json.hello).equals("world", "JSON missmatches given data");
-
-            data.hello = "changed";
-
-            expect(json.hello).equals("world", "JSON is not a copy of given data");
-        });
-    });
-
-    describe("toString()", () => {
-        it("returns a serialization of the cache data", () => {
-            const data = { hello: "world" };
-            const cache = new Cache(data);
-
-            expect(cache.toString()).equals(JSON.stringify(data));
-        });
-    });
-
-    describe("serialze()", () => {
-        it("returns a serialization of the cache data", () => {
-            const data = { hello: "world" };
-            const cache = new Cache(data);
-
-            expect(cache.serialze()).equals(JSON.stringify(data));
-        });
-    });
-
     describe("has()", () => {
         it("returns false on unset key", () => {
             const cache = new Cache();
@@ -133,48 +101,53 @@ describe("Cache", () => {
         });
     });
 
-    describe("deserialze()", () => {
-        it("changes the cache data by object", () => {
-            const data = { hello: "world" };
-            const cache = new Cache();
+    describe("serialization", () => {
+        describe("toJSON()", () => {
+            it("serializes cache data", () => {
+                const data = { hello: "world", a: "b" };
+                const cache = new Cache(data);
+                const json = cache.toJSON();
 
-            cache.deserialze(data);
-
-            Object.keys(data).forEach(key => expect(cache.get(key)).equals(data[key], `cache[${key}] missmatches data[${key}]`));
+                expect(json.hello).equals("world");
+                expect(json.a).equals("b");
+            });
         });
 
-        it("changes the cache data by string", () => {
-            const data = { hello: "world" };
-            const cache = new Cache();
+        describe("fromJSON()", () => {
+            it("deserialized the cache data", () => {
+                const data = { hello: "world", a: "b" };
+                const cache = new Cache();
 
-            cache.deserialze(JSON.stringify(data));
+                cache.fromJSON(data);
 
-            Object.keys(data).forEach(key => expect(cache.get(key)).equals(data[key], `cache[${key}] missmatches data[${key}]`));
-        });
+                expect(cache.get("hello")).equals("world");
+                expect(cache.get("a")).equals("b");
+            });
 
-        it("propagates all changes by onChange", () => {
-            const data = { hello: "world", test: 1 };
-            const cache = new Cache();
+            it("propagates all changes by onChange", () => {
+                const data = { hello: "world", test: 1 };
+                const cache = new Cache();
 
-            let changes;
+                let changes;
 
-            cache.onChange.on(data => changes = data);
-            cache.deserialze(data);
+                cache.onChange.on(data => changes = data);
+                cache.fromJSON(data);
 
-            expect(changes).deep.equals(data);
-        });
+                expect(changes).deep.equals(data);
+            });
 
-        it("propagates all cache data by onChange", () => {
-            const init = { asdf: -1 };
-            const data = { hello: "world", test: 1 };
-            const cache = new Cache(init);
+            it("propagates all cache data by onChange", () => {
+                const init = { asdf: -1 };
+                const data = { hello: "world", test: 1 };
+                const cache = new Cache(init);
 
-            let changes;
+                let changes;
 
-            cache.onChange.on(data => changes = data);
-            cache.deserialze(data);
+                cache.onChange.on(data => changes = data);
+                cache.fromJSON(data);
 
-            expect(changes).deep.equals(Object.assign({}, init, data));
+                expect(changes).deep.equals(Object.assign({}, init, data));
+            });
         });
     });
 });

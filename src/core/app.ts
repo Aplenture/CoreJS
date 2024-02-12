@@ -57,17 +57,20 @@ export class App extends Controller<any> {
         this.emit(EVENT_INIT);
     }
 
-    /** Returns a JSON, containing the cache data. */
-    public serialze() {
-        return this.cache.serialze();
+    public toJSON(): NodeJS.Dict<any> {
+        const data = super.toJSON();
+
+        // serialize cache
+        data.cache = this.cache.toJSON();
+
+        return data;
     }
 
-    /**
-     * Changes the cache data by JSON string or any object values.
-     * Emits changed data.
-     * @param data JSON or object with cache data
-     */
-    public deserialze(data: string | NodeJS.ReadOnlyDict<any>) {
-        this.cache.deserialze(data);
+    public fromJSON(data: NodeJS.ReadOnlyDict<any>): void {
+        super.fromJSON(data);
+
+        // deserialize cache
+        if (data.cache)
+            this.cache.fromJSON(data.cache);
     }
 }

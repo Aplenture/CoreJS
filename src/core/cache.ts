@@ -6,31 +6,24 @@
  */
 
 import { Delegatable, Delegate } from "./delegate";
+import { Serializable } from "./serializable";
 
 /** Data container with some usefull API's. */
-export class Cache {
+export class Cache extends Serializable {
     private readonly _onChange = new Delegate<NodeJS.ReadOnlyDict<any>>();
-    private readonly data: NodeJS.Dict<any>;
+    private readonly data: NodeJS.Dict<any> = {};
 
     /**
-     * @param data initial data
+     * @param data Serialized JSON data.
      */
     constructor(data: NodeJS.ReadOnlyDict<any> = {}) {
-        this.data = Object.assign({}, data);
+        super();
+
+        this.fromJSON(data);
     }
 
     /** Invoked when cache data has changed. */
     public get onChange(): Delegatable<NodeJS.ReadOnlyDict<any>> { return this._onChange; }
-
-    /** Returns a copy of cache data. */
-    public toJSON() {
-        return Object.assign({}, this.data);
-    }
-
-    /** Returns a serialization of the cache data. */
-    public toString() {
-        return this.serialze();
-    }
 
     /**
      * Returns whether cache contains a value for a specific key.
@@ -77,25 +70,22 @@ export class Cache {
         this._onChange.invoke(data);
     }
 
-    /**
-     * Returns a JSON, containing the cache data.
-     */
-    public serialze() {
-        return JSON.stringify(this);
+    public toJSON(): NodeJS.Dict<any> {
+        const data = super.toJSON();
+
+        data.data = this.data;
+
+        return data;
     }
 
-    /**
-     * Changes the cache data by JSON string or any object values.
-     * Propagates changed data by onChange.
-     * @param data JSON or object with cache data
-     */
-    public deserialze(data: string | NodeJS.ReadOnlyDict<any>) {
-        // parse JSON string to object if needed
-        if (typeof data == "string")
-            data = JSON.parse(data);
+    public fromJSON(data: NodeJS.ReadOnlyDict<any>): void {
+        super.fromJSON(data);
 
-        // change data by all object values
-        Object.keys(data).forEach(key => this.data[key] = data[key]);
+        if (!data.data)
+            return;
+
+        // change data by serialization
+        Object.keys(data.data).forEach(key => this.data[key] = data[key]);
 
         // propagate all data
         this._onChange.invoke(this.toJSON());

@@ -240,6 +240,39 @@ export class Controller<T extends Controller<T>> extends Module<T> {
         return instance;
     }
 
+    public toJSON(): NodeJS.Dict<any> {
+        const data = super.toJSON();
+
+        // serialize enabled
+        data.enabled = this._enabled;
+
+        // serialize all event handlers by name
+        data.eventHandlers = {};
+        this.eventHandlers.forEach(handler => data.eventHandlers[handler.name] = handler.toJSON());
+
+        // serialize all event controllers by name
+        data.eventControllers = {};
+        this.eventControllers.forEach(controller => data.eventControllers[controller.name] = controller.toJSON());
+
+        return data;
+    }
+
+    public fromJSON(data: NodeJS.ReadOnlyDict<any>): void {
+        super.fromJSON(data);
+
+        // deserialize enabled
+        if (data.enabled != undefined)
+            this._enabled = data.enabled;
+
+        // deserialize all event handlers by name
+        if (data.eventHandlers)
+            this.eventHandlers.forEach(handler => data.eventHandlers[handler.name] && handler.fromJSON(data.eventHandlers[handler.name]));
+
+        // deserialize all event controllers by name
+        if (data.eventControllers)
+            this.eventControllers.forEach(controller => data.eventControllers[controller.name] && controller.fromJSON(data.eventControllers[controller.name]));
+    }
+
     /**
      * Called when controller is enabled.
      * It`s recommended to call super.onEnabled().

@@ -14,3 +14,4 @@ export * from "./event";
 export * from "./handler";
 export * from "./module";
 export * from "./routine";
+export * from "./serializable";

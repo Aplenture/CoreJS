@@ -6,15 +6,18 @@
  */
 
 import { Event } from "./event";
+import { Serializable } from "./serializable";
 
 /**
  * Basic module class.
  * Contains parent handling.
  */
-export class Module<T extends Module<T>> {
+export class Module<T extends Module<T>> extends Serializable {
     private _parent: T = null;
 
-    constructor(public readonly name: string) { }
+    constructor(public readonly name: string) {
+        super();
+    }
 
     /** Parent module. */
     public get parent() { return this._parent; }
