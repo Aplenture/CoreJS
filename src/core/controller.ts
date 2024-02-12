@@ -48,18 +48,20 @@ export class Controller<T extends Controller<T>> extends Module<T> {
         if (this._enabled == value)
             return;
 
+        // when this and parents are enabled
         // emit before disabling
         // because emit catches on disabled
         // handlers will be emitted after changing enabled
         // because emit useses promise to delay event handling
-        if (!value)
+        if (!value && this.enabled)
             this.emit(EVENT_ENABLED_CHANGED);
 
         this._enabled = value;
 
+        // when this and parents are enabled
         // emit after enabling
         // because emit catches on disabled
-        if (value)
+        if (value && this.enabled)
             this.emit(EVENT_ENABLED_CHANGED);
 
         // call onEnabled() / onDisabled()

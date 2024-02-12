@@ -189,7 +189,7 @@ describe("Controller", () => {
                 expect(child.calledOnEnabled).is.false;
             });
 
-            it.only("skips onDisabled() on disabled parent", () => {
+            it("skips onDisabled() on disabled parent", () => {
                 const parent = new Controller<any>("parent");
                 const child = new MyController("child");
 
@@ -201,7 +201,7 @@ describe("Controller", () => {
                 expect(child.calledOnDisabled).is.false;
             });
 
-            it.only("skips onEnabled() on disabled parent", () => {
+            it("skips onEnabled() on disabled parent", () => {
                 const parent = new Controller<any>("parent");
                 const child = new MyController("child");
 
