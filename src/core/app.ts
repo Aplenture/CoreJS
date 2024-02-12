@@ -11,7 +11,7 @@ import { Controller } from "./controller";
 
 /** Basic Controller with cache handling. */
 export class App extends Controller<any> {
-    public readonly cache = new Cache();
+    private readonly cache = new Cache();
 
     constructor(name: string, ...classes: string[]) {
         super(name, ...classes);
