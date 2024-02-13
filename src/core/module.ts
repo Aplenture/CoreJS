@@ -8,10 +8,7 @@
 import { Event } from "./event";
 import { Serializable } from "./serializable";
 
-/**
- * Basic module class.
- * Contains parent handling.
- */
+/** Basic parent and event handling. */
 export class Module<T extends Module<T>> extends Serializable {
     private _parent: T = null;
 
