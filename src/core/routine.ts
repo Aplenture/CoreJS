@@ -5,39 +5,38 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { EVENT_ENABLED_CHANGED, CACHE_INIT, EVENT_INIT } from "../constants";
+import { CACHE_INIT, EVENT_INIT, EVENT_START, EVENT_STOP } from "../constants";
+import { ActionCallback } from "./action";
 import { Controller } from "./controller";
-import { Handler } from "./handler";
-import { Delegatable, Delegate, DelegateCallback } from "./delegate";
 
-export class Routine extends Handler<Controller<any>> {
-    private readonly _onExecute: Delegate<number>;
-
-    constructor(commandOrCallback: string | DelegateCallback<number>) {
-        super({ event: EVENT_ENABLED_CHANGED });
-
-        const callback = typeof commandOrCallback == "string"
-            ? () => this.emit(commandOrCallback)
-            : commandOrCallback;
-
-        this._onExecute = new Delegate(callback);
+export class Routine extends Controller<Controller<any>> {
+    constructor(name: string, ...classes: string[]) {
+        super(name, ...classes, "routine");
     }
 
-    public get onExecute(): Delegatable<number> { return this._onExecute; }
     public get running(): boolean { throw new Error('method not implemented'); }
 
-    public async execute(): Promise<void> {
-        if (this.parent.enabled)
-            this.start();
-        else
-            this.stop();
+    public on(callback: ActionCallback): void {
+        if (!(callback instanceof Function))
+            throw new Error('callback is not a function');
+
+        super.on(this.name, callback);
+    }
+
+    public once(callback: ActionCallback): void {
+        if (!(callback instanceof Function))
+            throw new Error('callback is not a function');
+
+        super.once(this.name, callback);
     }
 
     public start(time = Date.now()) {
         if (this.running)
             return;
 
-        this._onExecute.invoke(time);
+        this.emit(EVENT_START);
+
+        this.emit(this.name, this, this.name, time);
 
         throw new Error('method not implemented');
     }
@@ -46,23 +45,47 @@ export class Routine extends Handler<Controller<any>> {
         if (!this.running)
             return;
 
+        this.emit(EVENT_STOP);
+
         throw new Error('method not implemented');
+    }
+
+    protected onEnabled(): void {
+        super.onEnabled();
+
+        this.start();
+    }
+
+    protected onDisabled(): void {
+        super.onDisabled();
+
+        this.stop();
     }
 
     protected onAppended(): void {
         super.onAppended();
 
-        // execute if app is already initialized
-        // otherwise execute on init event
-        if (this.parent.get(CACHE_INIT))
-            this.execute();
-        else
-            this.parent.once(EVENT_INIT, () => this.execute());
+        // if already init
+        // remove initial start
+        // and start() or stop() depending on enabled
+        // otherwise add event handler
+        // to start at init event
+        if (this.get(CACHE_INIT)) {
+            this.off(EVENT_INIT);
+
+            if (this.enabled)
+                this.start();
+            else
+                this.stop();
+        } else {
+            super.once(EVENT_INIT, async () => this.enabled && this.start());
+        }
     }
 
     protected onDepended(): void {
         super.onDepended();
 
+        this.off(EVENT_INIT);
         this.stop();
     }
 }
