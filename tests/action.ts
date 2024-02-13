@@ -6,14 +6,18 @@
  */
 
 import { expect } from "chai";
-import { Action, Event } from "../src";
+import { Action, ActionCallback } from "../src";
+
+class MyAction extends Action {
+    public readonly execute: ActionCallback;
+}
 
 describe("Action", () => {
     describe("constructor()", () => {
         it("instantiates with config", () => {
             const emitter = "my emitter";
             const callback = async () => { };
-            const handler = new Action({ event: "event", emitter, once: true, callback });
+            const handler = new MyAction({ event: "event", emitter, once: true, callback });
 
             expect(handler.name, "name").equals("event");
             expect(handler.emitter, "emitter").equals(emitter);
@@ -23,7 +27,7 @@ describe("Action", () => {
 
         it("instantiates with callback only", () => {
             const callback = async () => { };
-            const handler = new Action(callback);
+            const handler = new MyAction(callback);
 
             expect(handler.execute, "execute").equals(callback);
             expect(handler.name, "name").is.undefined;
@@ -33,7 +37,7 @@ describe("Action", () => {
 
         it("instantiates with event name and callback only", () => {
             const callback = async () => { };
-            const handler = new Action("event", callback);
+            const handler = new MyAction("event", callback);
 
             expect(handler.name, "name").equals("event");
             expect(handler.execute, "execute").equals(callback);
@@ -44,7 +48,7 @@ describe("Action", () => {
         it("ignores callback argument when first argument is callback", () => {
             const callback1 = async () => { };
             const callback2 = async () => { };
-            const handler = new Action(callback1, callback2);
+            const handler = new MyAction(callback1, callback2);
 
             expect(handler.execute, "execute").equals(callback1);
             expect(handler.execute, "execute").not.equals(callback2);
@@ -53,7 +57,7 @@ describe("Action", () => {
         it("ignores callback argument when first argument is config", () => {
             const callback1 = async () => { };
             const callback2 = async () => { };
-            const handler = new Action({ callback: callback1 }, callback2);
+            const handler = new MyAction({ callback: callback1 }, callback2);
 
             expect(handler.execute, "execute").equals(callback1);
             expect(handler.execute, "execute").not.equals(callback2);

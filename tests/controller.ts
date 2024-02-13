@@ -15,6 +15,9 @@ class MyHandler extends Handler<any> {
     public calledOnEnabled = false;
     public calledOnDisabled = false;
 
+    public get state() { return super.state; }
+    public set state(value) { super.state = value; }
+
     public readonly execute = async (event: Event) => {
         this.event = event;
         this.value += event.args.value;
@@ -141,7 +144,7 @@ describe("Controller", () => {
             });
         });
 
-        describe("sub controllers", () => {
+        describe("children", () => {
             it("calls onDisabled() on enabled child", () => {
                 const parent = new Controller<any>("parent");
                 const child = new MyController("child");
@@ -217,7 +220,28 @@ describe("Controller", () => {
     });
 
     describe("event handling", () => {
-        describe("sub controllers", () => {
+        describe("retain", () => {
+            it("retains event", () => {
+                const controller = new Controller("controller");
+
+                const event = controller.emit("event");
+
+                expect(event.retains).equals(1);
+            });
+
+            it("releases event", done => {
+                const controller = new Controller("controller");
+
+                const event = controller.emit("event");
+
+                event.await()
+                    .then(() => expect(event.retains).equals(0))
+                    .then(() => done())
+                    .catch(done);
+            });
+        });
+
+        describe("children", () => {
             it("propagates events between children", done => {
                 const emitter = new Controller<any>("emitter");
                 const receiver = new Controller<any>("receiver");
@@ -367,125 +391,6 @@ describe("Controller", () => {
                     .then(() => expect(handler.event.timestamp).equals(timestamp))
                     .then(() => done())
                     .catch(done);
-            });
-        });
-
-        describe("event handling", () => {
-            describe("event handler", () => {
-                it("calls execute()", done => {
-                    const controller = new Controller("controller");
-                    const handler = new MyHandler();
-
-                    controller.append(handler);
-                    controller.emit("event", { value: 1 })
-                        .await()
-                        .then(() => expect(handler.value).equals(1))
-                        .then(() => done())
-                        .catch(done);
-                });
-
-                it("retains event", () => {
-                    const controller = new Controller("controller");
-                    const handler = new MyHandler();
-
-                    controller.append(handler);
-
-                    const event = controller.emit("event");
-
-                    expect(event.retains).equals(1);
-                });
-
-                it("releases event", done => {
-                    const controller = new Controller("controller");
-                    const handler = new MyHandler();
-
-                    controller.append(handler);
-
-                    const event = controller.emit("event");
-
-                    event.await()
-                        .then(() => expect(event.retains).equals(0))
-                        .then(() => done())
-                        .catch(done);
-                });
-
-                it("skips execute() on missmatching event name", done => {
-                    const controller = new Controller("controller");
-                    const handler = new MyHandler({ event: "other" });
-
-                    controller.append(handler);
-                    controller.emit("event")
-                        .await()
-                        .then(() => expect(handler.event).is.undefined)
-                        .then(() => done())
-                        .catch(done);
-                });
-
-                it("calls execute() on matching event name", done => {
-                    const controller = new Controller("controller");
-                    const handler = new MyHandler({ event: "other" });
-
-                    controller.append(handler);
-                    controller.emit("other")
-                        .await()
-                        .then(() => expect(handler.event).is.not.undefined)
-                        .then(() => done())
-                        .catch(done);
-                });
-
-                it("skips execute() on missmatching event emitter", done => {
-                    const controller = new Controller("controller");
-                    const handler = new MyHandler({ emitter: "other" });
-
-                    controller.append(handler);
-                    controller.emit("event")
-                        .await()
-                        .then(() => expect(handler.event).is.undefined)
-                        .then(() => done())
-                        .catch(done);
-                });
-
-                it("calls execute() on matching event emitter", done => {
-                    const controller = new Controller("other");
-                    const handler = new MyHandler({ emitter: "other" });
-
-                    controller.append(handler);
-                    controller.emit("event")
-                        .await()
-                        .then(() => expect(handler.event).is.not.undefined)
-                        .then(() => done())
-                        .catch(done);
-                });
-
-                it("calls execute() once if set", done => {
-                    const controller = new Controller("controller");
-                    const handler = new MyHandler({ once: true });
-
-                    controller.append(handler);
-                    controller.emit("event", { value: 1 });
-                    controller.emit("event", { value: 1 })
-                        .await()
-                        .then(() => expect(handler.value).equals(1))
-                        .then(() => done())
-                        .catch(done);
-                });
-            });
-
-            describe("sub controllers", () => {
-                it("calls execute()", done => {
-                    const parent = new Controller<any>("parent");
-                    const child = new Controller<any>("child");
-                    const handler = new MyHandler();
-
-                    child.append(handler);
-
-                    parent.append(child);
-                    parent.emit("event", { value: 1 })
-                        .await()
-                        .then(() => expect(handler.value).equals(1))
-                        .then(() => done())
-                        .catch(done);
-                });
             });
         });
     });
@@ -749,7 +654,7 @@ describe("Controller", () => {
                 });
             });
 
-            it("serializes event controllers", () => {
+            it("serializes children", () => {
                 const controller = new Controller<any>("controller");
                 const first = new Controller<any>("first");
                 const second = new Controller<any>("second");
@@ -760,7 +665,7 @@ describe("Controller", () => {
                 controller.append(second);
 
                 expect(controller.toJSON()).deep.contains({
-                    eventControllers: {
+                    children: {
                         first: { enabled: true },
                         second: { enabled: false }
                     }
@@ -798,7 +703,7 @@ describe("Controller", () => {
                 expect(second.state).equals(HandlerState.Removing);
             });
 
-            it("deserializes event controllers", () => {
+            it("deserializes children", () => {
                 const controller = new Controller<any>("controller");
                 const first = new Controller<any>("first");
                 const second = new Controller<any>("second");
@@ -809,12 +714,12 @@ describe("Controller", () => {
                 controller.append(second);
 
                 controller.fromJSON({
-                    eventControllers: {
+                    children: {
                         first: { enabled: true },
                         second: { enabled: false }
                     }
                 });
-                
+
                 expect(first.enabled).is.true;
                 expect(second.enabled).is.false;
             });
