@@ -6,7 +6,7 @@
  */
 
 import { expect } from "chai";
-import { Controller, Event, Handler } from "../src";
+import { Controller, Event, Handler, HandlerState } from "../src";
 import { EVENT_ENABLED_CHANGED } from "../src/constants";
 
 class MyHandler extends Handler<any> {
@@ -715,6 +715,109 @@ describe("Controller", () => {
                 .then(() => expect(result).equals(2))
                 .then(() => done())
                 .catch(done);
+        });
+    });
+
+    describe("serialization", () => {
+        describe("toJSON()", () => {
+            it("serializes enabled", () => {
+                const controller = new Controller("controller");
+
+                expect(controller.toJSON()).deep.contains({ enabled: true });
+
+                controller.enabled = false;
+
+                expect(controller.toJSON()).deep.contains({ enabled: false });
+            });
+
+            it("serializes event handlers", () => {
+                const controller = new Controller("controller");
+                const first = new MyHandler("first");
+                const second = new MyHandler("second");
+
+                first.state = HandlerState.Once;
+                second.state = HandlerState.Removing;
+
+                controller.append(first);
+                controller.append(second);
+
+                expect(controller.toJSON()).deep.contains({
+                    eventHandlers: {
+                        first: { state: HandlerState.Once },
+                        second: { state: HandlerState.Removing }
+                    }
+                });
+            });
+
+            it("serializes event controllers", () => {
+                const controller = new Controller<any>("controller");
+                const first = new Controller<any>("first");
+                const second = new Controller<any>("second");
+
+                second.enabled = false;
+
+                controller.append(first);
+                controller.append(second);
+
+                expect(controller.toJSON()).deep.contains({
+                    eventControllers: {
+                        first: { enabled: true },
+                        second: { enabled: false }
+                    }
+                });
+            });
+        });
+
+        describe("fromJSON()", () => {
+            it("deserializes enabled", () => {
+                const controller = new Controller("controller");
+
+                expect(controller.enabled).is.true;
+
+                controller.fromJSON({ enabled: false });
+
+                expect(controller.enabled).is.false;
+            });
+
+            it("deserializes event handlers", () => {
+                const controller = new Controller("controller");
+                const first = new MyHandler("first");
+                const second = new MyHandler("second");
+
+                controller.append(first);
+                controller.append(second);
+
+                controller.fromJSON({
+                    eventHandlers: {
+                        first: { state: HandlerState.Once },
+                        second: { state: HandlerState.Removing }
+                    }
+                });
+
+                expect(first.state).equals(HandlerState.Once);
+                expect(second.state).equals(HandlerState.Removing);
+            });
+
+            it("deserializes event controllers", () => {
+                const controller = new Controller<any>("controller");
+                const first = new Controller<any>("first");
+                const second = new Controller<any>("second");
+
+                second.enabled = false;
+
+                controller.append(first);
+                controller.append(second);
+
+                controller.fromJSON({
+                    eventControllers: {
+                        first: { enabled: true },
+                        second: { enabled: false }
+                    }
+                });
+                
+                expect(first.enabled).is.true;
+                expect(second.enabled).is.false;
+            });
         });
     });
 });

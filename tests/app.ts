@@ -59,13 +59,13 @@ describe("App", () => {
 
             app.set("hello", "world");
 
-            expect(app.serialze()).contains('"hello":"world"');
+            expect(app.toJSON()).deep.contains({ cache: { data: { hello: "world" } } });
         });
 
-        it("seserializes cache", () => {
+        it("deseserializes cache", () => {
             const app = new App("app");
 
-            app.deserialze({ hello: "world" });
+            app.fromJSON({ cache: { data: { hello: "world" } } });
 
             expect(app.get("hello")).equals("world");
         });
@@ -73,16 +73,17 @@ describe("App", () => {
         it("emits all cache data", done => {
             const data = { one: 1, two: "2" };
             const app = new App("app");
+            const expected = Object.assign({ "three": 3 }, data);
 
-            let changes;
+            let result;
 
-            app.on(EVENT_CACHE_CHANGED, async event => changes = event.args);
+            app.on(EVENT_CACHE_CHANGED, async event => result = event.args);
             app.set("three", 3);
-            app.deserialze(data);
+            app.fromJSON({ cache: { data } });
 
             Promise
                 .resolve()
-                .then(() => expect(changes).deep.equals(Object.assign({ "three": 3 }, data)))
+                .then(() => expect(result).deep.contains(expected))
                 .then(() => done())
                 .catch(done);
         });

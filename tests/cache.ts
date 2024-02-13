@@ -108,8 +108,7 @@ describe("Cache", () => {
                 const cache = new Cache(data);
                 const json = cache.toJSON();
 
-                expect(json.hello).equals("world");
-                expect(json.a).equals("b");
+                expect(json).deep.contains({ data });
             });
         });
 
@@ -118,7 +117,7 @@ describe("Cache", () => {
                 const data = { hello: "world", a: "b" };
                 const cache = new Cache();
 
-                cache.fromJSON(data);
+                cache.fromJSON({ data });
 
                 expect(cache.get("hello")).equals("world");
                 expect(cache.get("a")).equals("b");
@@ -131,7 +130,7 @@ describe("Cache", () => {
                 let changes;
 
                 cache.onChange.on(data => changes = data);
-                cache.fromJSON(data);
+                cache.fromJSON({ data });
 
                 expect(changes).deep.equals(data);
             });
@@ -140,13 +139,14 @@ describe("Cache", () => {
                 const init = { asdf: -1 };
                 const data = { hello: "world", test: 1 };
                 const cache = new Cache(init);
+                const expected = Object.assign({}, init, data);
 
                 let changes;
 
                 cache.onChange.on(data => changes = data);
-                cache.fromJSON(data);
+                cache.fromJSON({data});
 
-                expect(changes).deep.equals(Object.assign({}, init, data));
+                expect(changes).deep.equals(expected);
             });
         });
     });

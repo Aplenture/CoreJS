@@ -11,7 +11,7 @@ import { Serializable } from "./serializable";
 /** Data container with some usefull API's. */
 export class Cache extends Serializable {
     private readonly _onChange = new Delegate<NodeJS.ReadOnlyDict<any>>();
-    private readonly data: NodeJS.Dict<any> = {};
+    private readonly data: NodeJS.Dict<any>;
 
     /**
      * @param data Serialized JSON data.
@@ -19,7 +19,7 @@ export class Cache extends Serializable {
     constructor(data: NodeJS.ReadOnlyDict<any> = {}) {
         super();
 
-        this.fromJSON(data);
+        this.data = Object.assign({}, data);
     }
 
     /** Invoked when cache data has changed. */
@@ -85,9 +85,9 @@ export class Cache extends Serializable {
             return;
 
         // change data by serialization
-        Object.keys(data.data).forEach(key => this.data[key] = data[key]);
+        Object.keys(data.data).forEach(key => this.data[key] = data.data[key]);
 
         // propagate all data
-        this._onChange.invoke(this.toJSON());
+        this._onChange.invoke(Object.assign({}, this.data));
     }
 }

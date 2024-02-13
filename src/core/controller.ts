@@ -247,12 +247,16 @@ export class Controller<T extends Controller<T>> extends Module<T> {
         data.enabled = this._enabled;
 
         // serialize all event handlers by name
-        data.eventHandlers = {};
-        this.eventHandlers.forEach(handler => data.eventHandlers[handler.name] = handler.toJSON());
+        if (this.eventHandlers.length) {
+            data.eventHandlers = {};
+            this.eventHandlers.forEach(handler => data.eventHandlers[handler.name] = handler.toJSON());
+        }
 
         // serialize all event controllers by name
-        data.eventControllers = {};
-        this.eventControllers.forEach(controller => data.eventControllers[controller.name] = controller.toJSON());
+        if (this.eventControllers.length) {
+            data.eventControllers = {};
+            this.eventControllers.forEach(controller => data.eventControllers[controller.name] = controller.toJSON());
+        }
 
         return data;
     }
@@ -262,7 +266,7 @@ export class Controller<T extends Controller<T>> extends Module<T> {
 
         // deserialize enabled
         if (data.enabled != undefined)
-            this._enabled = data.enabled;
+            this.enabled = data.enabled;
 
         // deserialize all event handlers by name
         if (data.eventHandlers)

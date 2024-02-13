@@ -6,7 +6,7 @@
  */
 
 import { expect } from "chai";
-import { Controller, Event, Handler } from "../src";
+import { Controller, Event, Handler, HandlerState } from "../src";
 
 class MyHandler extends Handler<Controller<any>> {
     public async execute(event: Event) { }
@@ -29,6 +29,29 @@ describe("Handler", () => {
             expect(handler.name, "name").equals("event");
             expect(handler.emitter, "emitter").is.undefined;
             expect(handler.once, "once").is.false;
+        });
+    });
+
+    describe("serialization", () => {
+        it("serializes the state", () => {
+            const handler = new MyHandler();
+
+            expect(handler.toJSON()).deep.contains({ state: HandlerState.Infinite });
+
+            handler.state = HandlerState.Removing;
+
+            expect(handler.toJSON()).deep.contains({ state: HandlerState.Removing });
+        });
+
+        it("deserializes the state", () => {
+            const handler = new MyHandler();
+
+            expect(handler.state).equals(HandlerState.Infinite);
+
+            handler.state = HandlerState.Once;
+            handler.fromJSON({ state: HandlerState.Removing });
+
+            expect(handler.state).equals(HandlerState.Removing);
         });
     });
 });
