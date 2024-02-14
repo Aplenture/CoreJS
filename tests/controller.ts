@@ -637,37 +637,26 @@ describe("Controller", () => {
 
             it("serializes event handlers", () => {
                 const controller = new Controller("controller");
-                const first = new MyHandler("first");
-                const second = new MyHandler("second");
+                const firstHandler = new MyHandler("firstHandler");
+                const secondHandler = new MyHandler("secondHandler");
+                const firstController = new Controller<any>("firstController");
+                const secondController = new Controller<any>("secondController");
 
-                first.state = HandlerState.Once;
-                second.state = HandlerState.Removing;
+                firstHandler.state = HandlerState.Once;
+                secondHandler.state = HandlerState.Removing;
+                secondController.enabled = false;
 
-                controller.append(first);
-                controller.append(second);
+                controller.append(firstHandler);
+                controller.append(secondHandler);
+                controller.append(firstController);
+                controller.append(secondController);
 
                 expect(controller.toJSON()).deep.contains({
                     eventHandlers: {
-                        first: { state: HandlerState.Once },
-                        second: { state: HandlerState.Removing }
-                    }
-                });
-            });
-
-            it("serializes children", () => {
-                const controller = new Controller<any>("controller");
-                const first = new Controller<any>("first");
-                const second = new Controller<any>("second");
-
-                second.enabled = false;
-
-                controller.append(first);
-                controller.append(second);
-
-                expect(controller.toJSON()).deep.contains({
-                    children: {
-                        first: { enabled: true },
-                        second: { enabled: false }
+                        firstHandler: { state: HandlerState.Once },
+                        secondHandler: { state: HandlerState.Removing },
+                        firstController: { enabled: true },
+                        secondController: { enabled: false }
                     }
                 });
             });

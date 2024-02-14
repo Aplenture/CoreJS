@@ -21,8 +21,7 @@ interface OffOptions {
  */
 export class Controller<T extends Controller<T>> extends Module<T> {
     private _enabled = true;
-    private _children: T[] = [];
-    private eventHandlers: Handler<T>[] = [];
+    private eventHandlers: Array<Controller<any> | Handler<any>> = [];
 
     constructor(name: string, ...classes: string[]) {
         super([name].concat(classes).join("/"));
@@ -84,9 +83,6 @@ export class Controller<T extends Controller<T>> extends Module<T> {
                 this.onDisabled();
     }
 
-    /** All appended child controllers. */
-    public get children(): readonly T[] { return this._children; }
-
     /**
      * Returns whether value exists.
      * @param key of the value
@@ -129,31 +125,21 @@ export class Controller<T extends Controller<T>> extends Module<T> {
      * Then changes the parent of a module to this.
      * @param child
      */
-    public append(child: T | Handler<T>): void {
+    public append(child: Controller<any> | Handler<any>): void {
         super.append(child);
 
-        if (child instanceof Handler)
-            this.eventHandlers.push(child);
-        else
-            this._children.push(child);
+        this.eventHandlers.push(child);
     }
 
     /**
      * Depends a child controller or event handler.
      * @param child
      */
-    public depend(child: T | Handler<T>): void {
+    public depend(child: Controller<any> | Handler<any>): void {
         super.depend(child);
 
-        // find index from children
-        const childIndex = this._children.indexOf(child as any);
-
-        // remove child if appended
-        if (-1 != childIndex)
-            this._children.splice(childIndex, 1);
-
         // find index from handler
-        const handlerIndex = this.eventHandlers.indexOf(child as any);
+        const handlerIndex = this.eventHandlers.indexOf(child);
 
         // remove handler if appended
         if (-1 != handlerIndex)
@@ -192,6 +178,7 @@ export class Controller<T extends Controller<T>> extends Module<T> {
 
     /**
      * Depends all matching event handlers.
+     * Controllers are ignored.
      * @param event optional options with event and emitter names or name of all removing event handler
      * @param emitter optional emitter of all removing event handler
      */
@@ -201,6 +188,10 @@ export class Controller<T extends Controller<T>> extends Module<T> {
 
         for (let i = this.eventHandlers.length - 1; i >= 0; --i) {
             const handler = this.eventHandlers[i];
+
+            // skip if handler is not an instance of Handler
+            if (!(handler instanceof Handler))
+                continue;
 
             // skip missmatching event name
             if (ev != undefined && ev != handler.name)
@@ -254,12 +245,6 @@ export class Controller<T extends Controller<T>> extends Module<T> {
         // serialize enabled
         data.enabled = this._enabled;
 
-        // serialize all children by name
-        if (this._children.length) {
-            data.children = {};
-            this._children.forEach(child => data.children[child.name] = child.toJSON());
-        }
-
         // serialize all event handlers by name
         if (this.eventHandlers.length) {
             data.eventHandlers = {};
@@ -275,10 +260,6 @@ export class Controller<T extends Controller<T>> extends Module<T> {
         // deserialize enabled
         if (data.enabled != undefined)
             this.enabled = data.enabled;
-
-        // deserialize all children by name
-        if (data.children)
-            this._children.forEach(child => data.children[child.name] && child.fromJSON(data.children[child.name]));
 
         // deserialize all event handlers by name
         if (data.eventHandlers)
@@ -298,42 +279,41 @@ export class Controller<T extends Controller<T>> extends Module<T> {
     }
 
     /**
-     * Called when controller is enabled.
+     * Called when controller has been enabled.
+     * Calls onEnabled() on all event handlers.
      * It`s recommended to call super.onEnabled().
      */
     protected onEnabled() {
-        // call onEnabled() on all event handlers
-        this.eventHandlers.forEach(handler => handler.onEnabled());
-
-        // call onEnabled() on all enabled children
-        this._children.forEach(child => child._enabled && child.onEnabled());
+        this.eventHandlers.forEach(handler => {
+            if (handler instanceof Handler)
+                handler.onEnabled();
+            else if (handler._enabled)
+                handler.onEnabled();
+        });
     }
 
     /**
-     * Called when controller is disabled.
+     * Called when controller has been disabled.
+     * Calls onDisabled() on all event handlers.
      * It`s recommended to call super.onDisabled().
      */
     protected onDisabled() {
-        // call onDisabled() on all event handlers
-        this.eventHandlers.forEach(handler => handler.onDisabled());
-
-        // call onDisabled() on all enabled children
-        this._children.forEach(child => child._enabled && child.onDisabled());
+        this.eventHandlers.forEach(handler => {
+            if (handler instanceof Handler)
+                handler.onDisabled();
+            else if (handler._enabled)
+                handler.onDisabled();
+        });
     }
 
     /**
-     * Propagates an event first to all event handlers then to all children.
-     * @param event to propagate
+     * Propagates an event to all event handlers.
+     * Skips on disabled.
      */
     private handleEvent(event: Event) {
-        // skip if disabled
         if (!this._enabled)
             return;
 
-        // propagate event to all event handlers
-        this.eventHandlers.forEach(handler => handler.handleEvent(event));
-
-        // propagate event to all children
-        this._children.forEach(child => child.handleEvent(event));
+        this.eventHandlers.forEach((handler: any) => handler.handleEvent(event));
     }
 }
