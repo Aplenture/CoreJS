@@ -7,7 +7,7 @@
 
 import { expect } from "chai";
 import { App } from "../src";
-import { CACHE_INIT, EVENT_CACHE_CHANGED, EVENT_INIT } from "../src/constants";
+import { EVENT_CACHE_CHANGED, EVENT_INIT } from "../src/constants";
 
 describe("App", () => {
     describe("get/set", () => {
@@ -40,7 +40,7 @@ describe("App", () => {
         it("emits event init", done => {
             const app = new App("app");
 
-            app.on(EVENT_INIT, async () => done());
+            app.once(EVENT_INIT, async () => done());
             app.init();
         });
 

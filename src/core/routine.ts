@@ -5,7 +5,7 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { CACHE_INIT, EVENT_INIT, EVENT_START, EVENT_STOP } from "../constants";
+import { EVENT_INIT, EVENT_START, EVENT_STOP } from "../constants";
 import { ActionCallback } from "./action";
 import { Controller } from "./controller";
 
@@ -66,26 +66,18 @@ export class Routine extends Controller<Controller<any>> {
         super.onAppended();
 
         // if already init
-        // remove initial start
-        // and start() or stop() depending on enabled
-        // otherwise add event handler
+        // start() when enabled
+        // else add init event handler
         // to start at init event
-        if (this.get(CACHE_INIT)) {
-            this.off(EVENT_INIT);
-
-            if (this.enabled)
-                this.start();
-            else
-                this.stop();
-        } else {
+        if (!this.initialized)
             super.once(EVENT_INIT, async () => this.enabled && this.start());
-        }
+        else if (this.enabled)
+            this.start();
     }
 
     protected onDepended(): void {
         super.onDepended();
 
-        this.off(EVENT_INIT);
         this.stop();
     }
 }

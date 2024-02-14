@@ -158,15 +158,22 @@ export class Controller<T extends Controller<T>> extends Module<T> {
      * @param callback from Action, not needed if event is callback already
      */
     public on(event: string | ActionConfig | ActionCallback, callback?: ActionCallback) {
+        if (event == EVENT_INIT)
+            throw new Error('use once for init event');
+
         this.append(new Action(event, callback));
     }
 
     /**
      * Creates and appends an Action which is called only once.
+     * Ignores init event handler if already init.
      * @param event name, config or callback from Action
      * @param callback from Action, not needed if event is callback already
      */
     public once(event: string | ActionConfig | ActionCallback, callback?: ActionCallback) {
+        if (event == EVENT_INIT && this.initialized)
+            return;
+
         if (typeof event == "string")
             this.append(new Action({ event, callback, once: true }));
         else if (event instanceof Function)
@@ -268,6 +275,18 @@ export class Controller<T extends Controller<T>> extends Module<T> {
         // deserialize all event handlers by name
         if (data.eventHandlers)
             this.eventHandlers.forEach(handler => data.eventHandlers[handler.name] && handler.fromJSON(data.eventHandlers[handler.name]));
+    }
+
+    /**
+     * Called when parent is set.
+     * Removes all init event handlers if already init.
+     * It`s recommended to call super.onAppended().
+     */
+    protected onAppended(): void {
+        super.onAppended();
+
+        if (this.initialized)
+            this.off(EVENT_INIT);
     }
 
     /**
