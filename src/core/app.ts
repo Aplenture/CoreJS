@@ -5,7 +5,7 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { EVENT_INIT, CACHE_INIT, EVENT_CACHE_CHANGED } from "../constants";
+import { EVENT_INIT, EVENT_CACHE_CHANGED } from "../constants";
 import { Cache } from "./cache";
 import { Controller } from "./controller";
 
@@ -19,6 +19,10 @@ export class App extends Controller<any> {
         // emit all changes of cache
         this.cache.onChange.on(data => this.emit(EVENT_CACHE_CHANGED, data));
     }
+
+    /** App initialization state. */
+    public get initialized(): boolean { return this.get("cache_init"); }
+    private set initialized(value: boolean) { this.set("cache_init", value); }
 
     /**
      * Returns whether cache contains a value for a specific key.
@@ -53,7 +57,7 @@ export class App extends Controller<any> {
      * Sets init to true in cache.
      */
     public init() {
-        this.set(CACHE_INIT, true);
+        this.initialized = true;
         this.emit(EVENT_INIT);
     }
 

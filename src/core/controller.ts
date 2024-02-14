@@ -7,7 +7,7 @@
 
 import { Action, ActionCallback, ActionConfig } from "./action";
 import { Handler } from "./handler";
-import { CACHE_INIT, EVENT_ENABLED_CHANGED, EVENT_INIT } from "../constants";
+import { EVENT_ENABLED_CHANGED, EVENT_INIT } from "../constants";
 import { Module } from "./module";
 import { Event } from "./event";
 
@@ -28,8 +28,16 @@ export class Controller<T extends Controller<T>> extends Module<T> {
         super([name].concat(classes).join("/"));
     }
 
-    /** Returns wheather app is already initialized. */
-    public get initialized(): boolean { return this.get(CACHE_INIT); }
+    /**
+     * Initialization state of parent.
+     * If parent is not set, false is returned.
+     */
+    public get initialized(): boolean {
+        if (this.parent)
+            return this.parent.initialized;
+
+        return false;
+    }
 
     /** 
      * Enabled status of himself and all parents.
