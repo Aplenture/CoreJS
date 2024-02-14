@@ -7,7 +7,7 @@
 
 import { Action, ActionCallback, ActionConfig } from "./action";
 import { Handler } from "./handler";
-import { EVENT_ENABLED_CHANGED } from "../constants";
+import { CACHE_INIT, EVENT_ENABLED_CHANGED, EVENT_INIT } from "../constants";
 import { Module } from "./module";
 import { Event } from "./event";
 
@@ -27,6 +27,9 @@ export class Controller<T extends Controller<T>> extends Module<T> {
     constructor(name: string, ...classes: string[]) {
         super([name].concat(classes).join("/"));
     }
+
+    /** Returns wheather app is already initialized. */
+    public get initialized(): boolean { return this.get(CACHE_INIT); }
 
     /** 
      * Enabled status of himself and all parents.

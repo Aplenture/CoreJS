@@ -49,7 +49,7 @@ describe("App", () => {
 
             app.init();
 
-            expect(app.get(CACHE_INIT)).equals(true);
+            expect(app.initialized).equals(true);
         });
     });
 
