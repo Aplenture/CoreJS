@@ -5,19 +5,20 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { EVENT_INIT, EVENT_CACHE_CHANGED } from "../constants";
+import { EVENT_INIT } from "../constants";
 import { Cache } from "./cache";
 import { Controller } from "./controller";
 
 /** Basic Controller with cache handling. */
 export class App extends Controller<any> {
-    private readonly cache = new Cache();
+    private readonly cache: Cache;
 
     constructor(name: string, ...classes: string[]) {
         super(name, ...classes);
 
-        // emit all changes of cache
-        this.cache.onChange.on(data => this.emit(EVENT_CACHE_CHANGED, data));
+        this.cache = new Cache(name + "/cache");
+
+        this.append(this.cache);
     }
 
     /** App initialization state. */

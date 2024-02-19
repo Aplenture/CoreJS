@@ -5,25 +5,18 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { Delegatable, Delegate } from "./delegate";
-import { Serializable } from "./serializable";
+import { EVENT_CACHE_CHANGED } from "../constants";
+import { Module } from "./module";
 
 /** Data container with some usefull API's. */
-export class Cache extends Serializable {
-    private readonly _onChange = new Delegate<NodeJS.ReadOnlyDict<any>>();
+export class Cache extends Module<Module<any>> {
     private readonly data: NodeJS.Dict<any>;
 
-    /**
-     * @param data Serialized JSON data.
-     */
-    constructor(data: NodeJS.ReadOnlyDict<any> = {}) {
-        super();
+    constructor(name: string, data: NodeJS.ReadOnlyDict<any> = {}) {
+        super(name);
 
         this.data = Object.assign({}, data);
     }
-
-    /** Invoked when cache data has changed. */
-    public get onChange(): Delegatable<NodeJS.ReadOnlyDict<any>> { return this._onChange; }
 
     /**
      * Returns whether cache contains a value for a specific key.
@@ -67,7 +60,7 @@ export class Cache extends Serializable {
         // propagate changed data only
         const data = {};
         data[key] = value;
-        this._onChange.invoke(data);
+        this.emit(EVENT_CACHE_CHANGED, data);
     }
 
     public toJSON(): NodeJS.Dict<any> {
@@ -88,6 +81,6 @@ export class Cache extends Serializable {
         Object.keys(data.data).forEach(key => this.data[key] = data.data[key]);
 
         // propagate all data
-        this._onChange.invoke(Object.assign({}, this.data));
+        this.emit(EVENT_CACHE_CHANGED, Object.assign({}, this.data));
     }
 }
