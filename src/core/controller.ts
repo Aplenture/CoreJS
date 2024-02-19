@@ -125,21 +125,24 @@ export class Controller<T extends Controller<T>> extends Module<T> {
      * Then changes the parent of a module to this.
      * @param child
      */
-    public append(child: Controller<any> | Handler<any>): void {
+    public append(child: Module<Module<T>>): void {
         super.append(child);
 
-        this.eventHandlers.push(child);
+        if (child instanceof Controller)
+            this.eventHandlers.push(child);
+        else if (child instanceof Handler)
+            this.eventHandlers.push(child);
     }
 
     /**
      * Depends a child controller or event handler.
      * @param child
      */
-    public depend(child: Controller<any> | Handler<any>): void {
+    public depend(child: Module<Module<T>>): void {
         super.depend(child);
 
         // find index from handler
-        const handlerIndex = this.eventHandlers.indexOf(child);
+        const handlerIndex = this.eventHandlers.indexOf(child as any);
 
         // remove handler if appended
         if (-1 != handlerIndex)
