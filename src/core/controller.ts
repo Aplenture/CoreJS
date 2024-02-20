@@ -229,6 +229,26 @@ export class Controller<T extends Controller<T>> extends Module<T> {
         return instance;
     }
 
+    public findByName(name: string): Module<any> {
+        if (this.parent)
+            return this.parent.findByName(name);
+
+        if (this.name == name)
+            return this;
+
+        return this.findChildByName(name);
+    }
+
+    public findByType<T extends Module<any>>(type: new (...args) => T): T {
+        if (this.parent)
+            return this.parent.findByType(type);
+
+        if (this instanceof type)
+            return this;
+
+        return this.findChildByType(type);
+    }
+
     public toJSON(): NodeJS.Dict<any> {
         const data = super.toJSON();
 
@@ -305,5 +325,25 @@ export class Controller<T extends Controller<T>> extends Module<T> {
             return;
 
         this.eventHandlers.forEach((handler: any) => handler.handleEvent(event));
+    }
+
+    private findChildByName(name: string): Module<any> {
+        for (let i = 0, handler: any = this.eventHandlers[i]; i < this.eventHandlers.length; ++i, handler = this.eventHandlers[i]) {
+            if (handler.name == name)
+                return handler;
+
+            if (handler instanceof Controller && (handler = handler.findChildByName(name)))
+                return handler;
+        }
+    }
+
+    private findChildByType<T extends Module<any>>(type: new (...args) => T): T {
+        for (let i = 0, handler: any = this.eventHandlers[i]; i < this.eventHandlers.length; ++i, handler = this.eventHandlers[i]) {
+            if (handler instanceof type)
+                return handler;
+
+            if (handler instanceof Controller && (handler = handler.findChildByType(type)))
+                return handler;
+        }
     }
 }
