@@ -6,7 +6,7 @@
  */
 
 import { expect } from "chai";
-import { Controller, Event, Handler, HandlerState } from "../src";
+import { Controller, Event, Handler, ActionState } from "../src";
 import { EVENT_ENABLED_CHANGED } from "../src/constants";
 
 class MyHandler extends Handler<any> {
@@ -14,9 +14,7 @@ class MyHandler extends Handler<any> {
     public value = 0;
     public calledOnEnabled = false;
     public calledOnDisabled = false;
-
-    public get state() { return super.state; }
-    public set state(value) { super.state = value; }
+    public state: any;
 
     public readonly execute = async (event: Event) => {
         this.event = event;
@@ -581,46 +579,6 @@ describe("Controller", () => {
                 .then(() => done())
                 .catch(done);
         });
-
-        it("depends event handlers by emitter", done => {
-            const emitter = "my emitter";
-            const controller = new Controller("controller");
-
-            let result = 0;
-
-            controller.on({ emitter }, async event => result += event.args.value);
-            controller.on({ event: "event", emitter }, async event => result += event.args.value);
-            controller.on("event", async event => result += event.args.value);
-
-            controller.off(undefined, emitter);
-
-            controller.emit("event", { value: 1 }, emitter);
-
-            Promise.resolve()
-                .then(() => expect(result).equals(1))
-                .then(() => done())
-                .catch(done);
-        });
-
-        it("depends event handlers by event name and emitter", done => {
-            const emitter = "my emitter";
-            const controller = new Controller("controller");
-
-            let result = 0;
-
-            controller.on({ emitter }, async event => result += event.args.value);
-            controller.on({ event: "event", emitter }, async event => result += event.args.value);
-            controller.on("event", async event => result += event.args.value);
-
-            controller.off("event", emitter);
-
-            controller.emit("event", { value: 1 }, emitter);
-
-            Promise.resolve()
-                .then(() => expect(result).equals(2))
-                .then(() => done())
-                .catch(done);
-        });
     });
 
     describe("serialization", () => {
@@ -642,8 +600,8 @@ describe("Controller", () => {
                 const firstController = new Controller<any>("firstController");
                 const secondController = new Controller<any>("secondController");
 
-                firstHandler.state = HandlerState.Once;
-                secondHandler.state = HandlerState.Removing;
+                firstHandler.state = ActionState.Once;
+                secondHandler.state = ActionState.Removing;
                 secondController.enabled = false;
 
                 controller.append(firstHandler);
@@ -653,8 +611,8 @@ describe("Controller", () => {
 
                 expect(controller.toJSON()).deep.contains({
                     eventHandlers: {
-                        firstHandler: { state: HandlerState.Once },
-                        secondHandler: { state: HandlerState.Removing },
+                        firstHandler: { state: ActionState.Once },
+                        secondHandler: { state: ActionState.Removing },
                         firstController: { enabled: true },
                         secondController: { enabled: false }
                     }
@@ -683,13 +641,13 @@ describe("Controller", () => {
 
                 controller.fromJSON({
                     eventHandlers: {
-                        first: { state: HandlerState.Once },
-                        second: { state: HandlerState.Removing }
+                        first: { state: ActionState.Once },
+                        second: { state: ActionState.Removing }
                     }
                 });
 
-                expect(first.state).equals(HandlerState.Once);
-                expect(second.state).equals(HandlerState.Removing);
+                expect(first.state).equals(ActionState.Once);
+                expect(second.state).equals(ActionState.Removing);
             });
 
             it("deserializes children", () => {

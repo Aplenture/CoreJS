@@ -6,10 +6,16 @@
  */
 
 import { expect } from "chai";
-import { Action, ActionCallback } from "../src";
+import { Action, ActionCallback, Event, ActionState } from "../src";
 
 class MyAction extends Action {
     public readonly execute: ActionCallback;
+
+    public event: Event;
+    public executionCount = 0;
+
+    public get state() { return super.state; }
+    public set state(value) { super.state = value; }
 }
 
 describe("Action", () => {
@@ -61,6 +67,68 @@ describe("Action", () => {
 
             expect(handler.execute, "execute").equals(callback1);
             expect(handler.execute, "execute").not.equals(callback2);
+        });
+    });
+
+    describe("handleEvent()", () => {
+
+        it("skips execute() on missmatching event emitter", done => {
+            const handler = new MyAction({ emitter: "other" });
+            const event = new Event("event", { value: 1 }, "emitter");
+
+            handler.handleEvent(event);
+
+            event.await()
+                .then(() => expect(handler.event).is.undefined)
+                .then(() => done())
+                .catch(done);
+        });
+
+        it("calls execute() on matching event emitter", done => {
+            const handler = new MyAction({ emitter: "emitter" });
+            const event = new Event("event", { value: 1 }, "emitter");
+
+            handler.handleEvent(event);
+
+            event.await()
+                .then(() => expect(handler.event).is.not.undefined)
+                .then(() => done())
+                .catch(done);
+        });
+
+
+        it("calls execute() once is true", () => {
+            const handler = new MyAction({ once: true });
+            const event = new Event("event", { value: 1 }, "emitter");
+
+            handler.handleEvent(event);
+            handler.handleEvent(event);
+
+            expect(handler.state).equals(ActionState.Removing);
+            expect(handler.executionCount).equals(1);
+        });
+    });
+
+    describe("serialization", () => {
+        it("serializes the state", () => {
+            const handler = new MyAction("handler");
+
+            expect(handler.toJSON()).deep.contains({ state: ActionState.Infinite });
+
+            handler.state = ActionState.Removing;
+
+            expect(handler.toJSON()).deep.contains({ state: ActionState.Removing });
+        });
+
+        it("deserializes the state", () => {
+            const handler = new MyAction("handler");
+
+            expect(handler.state).equals(ActionState.Infinite);
+
+            handler.state = ActionState.Once;
+            handler.fromJSON({ state: ActionState.Removing });
+
+            expect(handler.state).equals(ActionState.Removing);
         });
     });
 });

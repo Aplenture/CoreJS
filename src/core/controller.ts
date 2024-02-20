@@ -11,11 +11,6 @@ import { EVENT_ENABLED_CHANGED, EVENT_INIT } from "../constants";
 import { Module } from "./module";
 import { Event } from "./event";
 
-interface OffOptions {
-    readonly event?: string;
-    readonly emitter?: string;
-}
-
 /** 
  * Appends other handlers to propagate events to them.
  */
@@ -183,12 +178,8 @@ export class Controller<T extends Controller<T>> extends Module<T> {
      * Depends all matching event handlers.
      * Controllers are ignored.
      * @param event optional options with event and emitter names or name of all removing event handler
-     * @param emitter optional emitter of all removing event handler
      */
-    public off(event: OffOptions | string = {}, emitter?: string) {
-        const ev = typeof event == "object" ? event.event : event;
-        const em = typeof event == "object" && event.emitter !== undefined ? event.emitter : emitter;
-
+    public off(event?: string) {
         for (let i = this.eventHandlers.length - 1; i >= 0; --i) {
             const handler = this.eventHandlers[i];
 
@@ -197,11 +188,7 @@ export class Controller<T extends Controller<T>> extends Module<T> {
                 continue;
 
             // skip missmatching event name
-            if (ev != undefined && ev != handler.name)
-                continue;
-
-            // skip missmatching event emitter by emitter as emitter
-            if (em != undefined && em != handler.emitter)
+            if (event != undefined && event != handler.name)
                 continue;
 
             this.depend(handler);
