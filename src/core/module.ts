@@ -5,10 +5,11 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { Event } from "./event";
 import { Serializable } from "./serializable";
 
-/** Basic parent and event handling. */
+/**
+ * Appends other modules as parent.
+ */
 export class Module<T extends Module<T>> extends Serializable {
     private _parent: T = null;
 
@@ -16,18 +17,19 @@ export class Module<T extends Module<T>> extends Serializable {
         super();
     }
 
-    /** Parent module. */
     public get parent() { return this._parent; }
     private set parent(value) { this._parent = value; }
 
     /**
-     * First calls removeFromParent().
-     * Then changes the parent of a module to this.
-     * @param child where to change the parent
+     * Sets parent of child to this.
+     * Throws an Error when parent is already this.
+     * Calls child.removeFromParent() before setting parent.
+     * Calls child.onAppended() after setting parent.
+     * It`s recommended to call super.append().
      */
     public append(child: Module<Module<T>>) {
         if (child.parent == this)
-            throw new Error('parent is already this');
+            throw new Error("parent is already this");
 
         child.removeFromParent();
         child.parent = this;
@@ -35,19 +37,23 @@ export class Module<T extends Module<T>> extends Serializable {
     }
 
     /**
-     * Removes the parent if its a child from this.
-     * @param child where to remove the parent
+     * Unsets parent of child to null.
+     * Throws an Error when parent is not this.
+     * Calls child.onDepended() after setting parent.
+     * It`s recommended to call super.depend().
      */
     public depend(child: Module<Module<T>>) {
         if (child.parent != this)
-            throw new Error('parent is not this');
+            throw new Error("parent is not this");
 
         child.parent = null;
         child.onDepended();
     }
 
     /**
-     * Calls depend by parent if parent is set.
+     * Calls parent.depend().
+     * Catches unset parent.
+     * It`s recommended to call super.removeFromParent().
      */
     public removeFromParent() {
         if (this.parent)
