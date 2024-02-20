@@ -5,10 +5,13 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-/** Basic serialization handling. */
+/**
+ * Parsing from and to json object/string.
+ */
 export class Serializable {
     /** 
-     * Serializes the module in JSON string.
+     * Parses to json string.
+     * Calls this.toJSON().
      * It`s recommended to call super.toString().
      */
     public toString() {
@@ -16,15 +19,17 @@ export class Serializable {
     }
 
     /** 
-     * Serializes to JSON object.
+     * Parses to json object.
      * It`s recommended to call super.toJSON().
+     * @returns an empty Object.
      */
     public toJSON(): NodeJS.Dict<any> {
         return {};
     }
 
     /** 
-     * Deserializes from JSON string.
+     * Parses from json string.
+     * Calls this.fromJSON().
      * It`s recommended to call super.fromString().
      */
     public fromString(data: string) {
@@ -32,7 +37,7 @@ export class Serializable {
     }
 
     /** 
-     * Deserializes from JSON object.
+     * Parses from json object.
      * It`s recommended to call super.fromJSON().
      */
     public fromJSON(data: NodeJS.ReadOnlyDict<any>) { }
