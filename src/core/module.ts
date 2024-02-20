@@ -55,18 +55,6 @@ export class Module<T extends Module<T>> extends Serializable {
     }
 
     /**
-     * Emits an event to parent if parent is set.
-     * @param event name of event
-     * @param args arguments of event, default is this
-     * @param emitter emitter of event, default is this
-     * @returns an event
-     */
-    public emit(event: string, args: NodeJS.ReadOnlyDict<any> = this, emitter: string = this.name, timestamp?: number): Event {
-        if (this.parent)
-            return this.parent.emit(event, args, emitter, timestamp);
-    }
-
-    /**
      * Called when parent is set.
      * It`s recommended to call super.onAppended().
      */

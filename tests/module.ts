@@ -6,196 +6,122 @@
  */
 
 import { expect } from "chai";
-import { Event, Module } from "../src";
-
-class MyModule extends Module<MyModule> {
-    public calledDepend = false;
-    public calledRemoveFromParent = false;
-    public calledEvent: string;
-    public eventArgs;
-    public eventEmitter;
-    public calledOnAppended = false;
-    public calledOnDepended = false;
-
-    public depend(child: Module<Module<MyModule>>): void {
-        this.calledDepend = true;
-        super.depend(child);
-    }
-
-    public removeFromParent(): void {
-        this.calledRemoveFromParent = true;
-        super.removeFromParent();
-    }
-
-    public emit(event: string, args?: NodeJS.ReadOnlyDict<any>, emitter?: string): Event {
-        this.calledEvent = event;
-        this.eventArgs = args;
-        this.eventEmitter = emitter;
-
-        return super.emit(event, args, emitter);
-    }
-
-    protected onAppended(): void {
-        this.calledOnAppended = true;
-    }
-
-    protected onDepended(): void {
-        this.calledOnDepended = true;
-    }
-}
+import { Module } from "../src";
 
 describe("Module", () => {
     describe("append()", () => {
-        it("sets parent of children", () => {
-            const parent = new MyModule("parent");
-            const child1 = new MyModule("child1");
-            const child2 = new MyModule("child2");
-
-            parent.append(child1);
-            parent.append(child2);
-
-            expect(child1.parent).equals(parent);
-            expect(child2.parent).equals(parent);
-        });
-
-        it("changes parent of children", () => {
-            const parent1 = new MyModule("parent1");
-            const parent2 = new MyModule("parent2");
-
-            const child1 = new MyModule("child1");
-            const child2 = new MyModule("child2");
-
-            parent1.append(child1);
-            parent1.append(child2);
-
-            parent2.append(child2);
-
-            expect(child1.parent).equals(parent1);
-            expect(child2.parent).equals(parent2);
-        });
-
-        it("calls depend() at parent", () => {
-            const parent1 = new MyModule("parent1");
-            const parent2 = new MyModule("parent2");
-
-            const child1 = new MyModule("child1");
-            const child2 = new MyModule("child2");
-
-            parent1.append(child1);
-            parent1.append(child2);
-
-            parent2.append(child2);
-
-            expect(parent1.calledDepend).equals(true);
-            expect(parent2.calledDepend).equals(false);
-
-            expect(child1.calledDepend).equals(false);
-            expect(child2.calledDepend).equals(false);
-        });
-
-        it("calls removeFromParent() at children", () => {
-            const parent1 = new MyModule("parent1");
-            const parent2 = new MyModule("parent2");
-
-            const child1 = new MyModule("child1");
-            const child2 = new MyModule("child2");
-
-            parent1.append(child1);
-            parent1.append(child2);
-
-            parent2.append(child2);
-
-            expect(parent1.calledRemoveFromParent).equals(false);
-            expect(parent2.calledRemoveFromParent).equals(false);
-
-            expect(child1.calledRemoveFromParent).equals(true);
-            expect(child2.calledRemoveFromParent).equals(true);
-        });
-
-        it("calls onAppended()", () => {
+        it("Sets parent of child to this", () => {
             const parent = new MyModule("parent");
             const child = new MyModule("child");
 
             parent.append(child);
 
-            expect(parent.calledOnAppended, "parent.calledOnAppended").is.false;
-            expect(child.calledOnAppended, "child.calledOnAppended").is.true;
+            expect(child.parent).equals(parent);
         });
 
-        it("calls onDepended()", () => {
+        it("Throws an Error when parent is already this", () => {
+            const parent = new MyModule("parent");
+            const child = new MyModule("child");
+
+            parent.append(child);
+
+            expect(() => parent.append(child)).throws("parent is already this");
+        });
+
+        it("Calls child.removeFromParent() before setting parent", () => {
+            const parent = new MyModule("parent");
+            const child = new MyModule("child");
+
+            parent.append(child);
+
+            expect(parent.removeFromParentCalled).is.false;
+            expect(child.removeFromParentCalled).is.true;
+        });
+
+        it("Calls child.onAppended() after setting parent", () => {
+            const parent = new MyModule("parent");
+            const child = new MyModule("child");
+
+            parent.append(child);
+
+            expect(parent.onAppendedCalled).is.false;
+            expect(child.onAppendedCalled).is.true;
+        });
+    });
+
+    describe("depend()", () => {
+        it("Unsets parent of child to null", () => {
             const parent = new MyModule("parent");
             const child = new MyModule("child");
 
             parent.append(child);
             parent.depend(child);
 
-            expect(parent.calledOnDepended, "parent.calledOnDepended").is.false;
-            expect(child.calledOnDepended, "child.calledOnDepended").is.true;
+            expect(child.parent).is.null;
         });
-    });
 
-    describe("depend()", () => {
-        it("resets parent of children", () => {
-            const parent1 = new MyModule("parent1");
+        it("Throws an Error when parent is not this", () => {
+            const parent = new MyModule("parent");
+            const child = new MyModule("child");
 
-            const child1 = new MyModule("child1");
-            const child2 = new MyModule("child2");
+            expect(() => parent.depend(child)).throws("parent is not this");
+        });
 
-            parent1.append(child1);
-            parent1.append(child2);
+        it("Calls child.onDepended() after setting parent", () => {
+            const parent = new MyModule("parent");
+            const child = new MyModule("child");
 
-            parent1.depend(child2);
+            parent.append(child);
+            parent.depend(child);
 
-            expect(child1.parent).equals(parent1);
-            expect(child2.parent).equals(null);
+            expect(parent.onDependedCalled).is.false;
+            expect(child.onDependedCalled).is.true;
         });
     });
 
     describe("removeFromParent()", () => {
-        it("resets parent of children", () => {
-            const parent1 = new MyModule("parent1");
+        it("Calls parent.depend()", () => {
+            const parent = new MyModule("parent");
+            const child = new MyModule("child");
 
-            const child1 = new MyModule("child1");
-            const child2 = new MyModule("child2");
+            parent.append(child);
+            child.removeFromParent();
 
-            parent1.append(child1);
-            parent1.append(child2);
-
-            child2.removeFromParent();
-
-            expect(child1.parent).equals(parent1);
-            expect(child2.parent).equals(null);
+            expect(parent.dependCalled).is.true;
+            expect(child.dependCalled).is.false;
         });
 
-        it("calls depend() at parent", () => {
-            const parent1 = new MyModule("parent1");
+        it("Catches when parent is not set", () => {
+            const child = new MyModule("child");
 
-            const child1 = new MyModule("child1");
-            const child2 = new MyModule("child2");
-
-            parent1.append(child1);
-            parent1.append(child2);
-
-            child2.removeFromParent();
-
-            expect(parent1.calledDepend).equals(true);
-
-            expect(child1.calledDepend).equals(false);
-            expect(child2.calledDepend).equals(false);
-        });
-    });
-
-    describe("emit()", () => {
-        it("emits event args to parent", () => {
-            const parent1 = new MyModule("parent1");
-            const child1 = new MyModule("child1");
-
-            parent1.append(child1);
-            child1.emit("hello", { hello: "world" });
-
-            expect(parent1.calledEvent).equals("hello");
-            expect(parent1.eventArgs).contains({ hello: "world" });
-            expect(parent1.eventEmitter).equals(child1.name);
+            expect(() => child.removeFromParent()).not.throw();
         });
     });
 });
+
+class MyModule extends Module<any> {
+    public dependCalled = false;
+    public removeFromParentCalled = false;
+    public onAppendedCalled = false;
+    public onDependedCalled = false;
+
+    public depend(child: Module<Module<any>>): void {
+        super.depend(child);
+        this.dependCalled = true;
+    }
+
+    public removeFromParent(): void {
+        super.removeFromParent();
+        this.removeFromParentCalled = true;
+    }
+
+    public onAppended(): void {
+        super.onAppended();
+        this.onAppendedCalled = true;
+    }
+
+    public onDepended(): void {
+        super.onDepended();
+        this.onDependedCalled = true;
+    }
+}

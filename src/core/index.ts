@@ -10,6 +10,7 @@ export * from "./app";
 export * from "./cache";
 export * from "./controller";
 export * from "./delegate";
+export * from "./emitter";
 export * from "./event";
 export * from "./handler";
 export * from "./module";

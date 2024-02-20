@@ -7,9 +7,9 @@
 
 import { Event } from "./event";
 import { Controller } from "./controller";
-import { Module } from "./module";
+import { Emitter } from "./emitter";
 
-export abstract class Handler<T extends Controller<T>> extends Module<T> {
+export abstract class Handler<T extends Controller<T>> extends Emitter<T> {
     protected abstract execute(event: Event): Promise<any>;
 
     constructor(name?: string) {

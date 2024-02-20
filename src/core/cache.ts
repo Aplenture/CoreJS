@@ -6,10 +6,10 @@
  */
 
 import { EVENT_CACHE_CHANGED } from "../constants";
-import { Module } from "./module";
+import { Emitter } from "./emitter";
 
 /** Data container with some usefull API's. */
-export class Cache extends Module<Module<any>> {
+export class Cache extends Emitter<Emitter<any>> {
     private readonly data: NodeJS.Dict<any>;
 
     constructor(name: string, data: NodeJS.ReadOnlyDict<any> = {}) {

@@ -10,11 +10,12 @@ import { Handler } from "./handler";
 import { EVENT_ENABLED_CHANGED, EVENT_INIT } from "../constants";
 import { Module } from "./module";
 import { Event } from "./event";
+import { Emitter } from "./emitter";
 
 /** 
  * Appends other handlers to propagate events to them.
  */
-export class Controller<T extends Controller<T>> extends Module<T> {
+export class Controller<T extends Controller<T>> extends Emitter<T> {
     private _enabled = true;
     private eventHandlers: Array<Controller<any> | Handler<any>> = [];
 
