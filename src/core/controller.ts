@@ -7,7 +7,7 @@
 
 import { Action, ActionCallback, ActionConfig } from "./action";
 import { Handler } from "./handler";
-import { EVENT_ENABLED_CHANGED, EVENT_INIT } from "../constants";
+import { EVENT_DEBUG, EVENT_ENABLED_CHANGED, EVENT_INIT } from "../constants";
 import { Module } from "./module";
 import { Event } from "./event";
 import { Emitter } from "./emitter";
@@ -24,6 +24,9 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
     }
 
     public get initialized() { return this.get<boolean>(EVENT_INIT); }
+
+    public get debug() { return this.get<boolean>(EVENT_DEBUG); }
+    public set debug(value) { this.set(EVENT_DEBUG, value); }
 
     /** 
      * Enabled status of himself and all parents.

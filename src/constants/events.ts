@@ -14,6 +14,9 @@ export const EVENT_CACHE_CHANGED = "cache_changed";
 /** emitted when app is initialized */
 export const EVENT_INIT = "init";
 
+/** emitted when debug has changed */
+export const EVENT_DEBUG = "debug";
+
 /** emitted when any module has started */
 export const EVENT_START = "start";
 
