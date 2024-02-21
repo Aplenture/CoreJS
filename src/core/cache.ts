@@ -5,15 +5,14 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { EVENT_CACHE_CHANGED } from "../constants";
-import { Emitter } from "./emitter";
+import { Serializable } from "./serializable";
 
 /** Data container with some usefull API's. */
-export class Cache extends Emitter<Emitter<any>> {
+export class Cache extends Serializable {
     private readonly data: NodeJS.Dict<any>;
 
-    constructor(name: string, data: NodeJS.ReadOnlyDict<any> = {}) {
-        super(name);
+    constructor(data: NodeJS.ReadOnlyDict<any> = {}) {
+        super();
 
         this.data = Object.assign({}, data);
     }
@@ -56,11 +55,6 @@ export class Cache extends Emitter<Emitter<any>> {
             throw new Error('key needs to be a string to set a value');
 
         this.data[key] = value;
-
-        // propagate changed data only
-        const data = {};
-        data[key] = value;
-        this.emit(EVENT_CACHE_CHANGED, data);
     }
 
     public toJSON(): NodeJS.Dict<any> {
@@ -78,9 +72,6 @@ export class Cache extends Emitter<Emitter<any>> {
             return;
 
         // change data by serialization
-        Object.keys(data.data).forEach(key => this.data[key] = data.data[key]);
-
-        // propagate all data
-        this.emit(EVENT_CACHE_CHANGED, Object.assign({}, this.data));
+        Object.keys(data.data).forEach(key => this.set(key, data.data[key]));
     }
 }

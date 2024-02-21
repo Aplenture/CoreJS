@@ -16,9 +16,7 @@ export class App extends Controller<any> {
     constructor(name: string, ...classes: string[]) {
         super(name, ...classes);
 
-        this.cache = new Cache(name + "/cache");
-
-        this.append(this.cache);
+        this.cache = new Cache();
     }
 
     /** App initialization state. */
@@ -51,6 +49,7 @@ export class App extends Controller<any> {
      */
     public set(key: string, value: any) {
         this.cache.set(key, value);
+        this.emit(key);
     }
 
     /**
