@@ -12,7 +12,8 @@ import { Emitter } from "./emitter";
 /** Handles events with matching name. */
 export abstract class Handler<T extends Controller<T>> extends Emitter<T> {
     /**
-     * @param name optional event handling name, when empty handler responds on every event.
+     * Handles events with matching name.
+     * @param name optional event handling name. When empty, handler responds on every event.
      */
     constructor(name?: string) {
         super(name);

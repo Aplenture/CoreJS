@@ -7,12 +7,14 @@
 
 import { Serializable } from "./serializable";
 
-/**
- * Appends other modules as parent.
- */
+/** Appends other modules as parent. */
 export class Module<T extends Module<T>> extends Serializable {
     private _parent: T = null;
 
+    /**
+     * Appends other modules as parent.
+     * @param name of this module.
+     */
     constructor(public readonly name: string) {
         super();
     }

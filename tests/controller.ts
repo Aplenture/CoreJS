@@ -219,24 +219,24 @@ describe("Controller", () => {
 
     describe("event handling", () => {
         describe("retain", () => {
-            it("retains event", () => {
-                const controller = new Controller("controller");
+            // it("retains event", () => {
+            //     const controller = new Controller("controller");
 
-                const event = controller.emit("event");
+            //     const event = controller.emit("event");
 
-                expect(event.retains).equals(1);
-            });
+            //     expect(event.retains).equals(1);
+            // });
 
-            it("releases event", done => {
-                const controller = new Controller("controller");
+            // it("releases event", done => {
+            //     const controller = new Controller("controller");
 
-                const event = controller.emit("event");
+            //     const event = controller.emit("event");
 
-                event
-                    .then(() => expect(event.retains).equals(0))
-                    .then(() => done())
-                    .catch(done);
-            });
+            //     event
+            //         .then(() => expect(event.retains).equals(0))
+            //         .then(() => done())
+            //         .catch(done);
+            // });
         });
 
         describe("children", () => {

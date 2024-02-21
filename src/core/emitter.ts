@@ -14,11 +14,12 @@ import { Module } from "./module";
 export class Emitter<T extends Emitter<T>> extends Module<T> {
     /**
      * Calls parent.emit().
+     * Calls parent.emit() with the arguments.
      * Catches unset parent.
-     * @param event name of event
-     * @param args default is this
-     * @param emitter name of emiiter, default is this
-     * @param timestamp opitonal timestamp
+     * @param event name.
+     * @param args default is this.
+     * @param emitter name, default is this.
+     * @param timestamp default is undefined.
      * @returns an Event by parent when parent is set.
      * @returns undefined when parent is unset.
      */
