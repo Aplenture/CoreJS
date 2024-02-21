@@ -6,7 +6,7 @@
  */
 
 import { expect } from "chai";
-import { Time } from "../src";
+import { Time } from "../src/utils";
 
 describe("Time", () => {
     describe("format()", () => {

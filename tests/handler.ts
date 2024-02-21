@@ -6,82 +6,91 @@
  */
 
 import { expect } from "chai";
-import { Controller, Event, Handler, ActionState } from "../src";
+import { Controller, Event, Handler } from "../src";
+
+describe("Handler", () => {
+    describe("handleEvent()", () => {
+        it("Calls this.execute() on event with matching name", () => {
+            const handler = new MyHandler("event");
+
+            handler.handleEvent(new Event("event", "emitter", { value: 1 }));
+            handler.handleEvent(new Event("another", "emitter", { value: 2 }));
+
+            expect(handler.value).equals(1);
+        });
+
+        it("Calls this.execute() on every event when name is unset", () => {
+            const handler = new MyHandler();
+
+            handler.handleEvent(new Event("event", "emitter", { value: 1 }));
+            handler.handleEvent(new Event("another", "emitter", { value: 2 }));
+
+            expect(handler.value).equals(3);
+        });
+
+        it("Calls this.execute() with the event argument", () => {
+            const handler = new MyHandler();
+            const event = new Event("event", "emitter", { value: 1 });
+
+            handler.handleEvent(event);
+
+            expect(handler.event).equals(event);
+        });
+
+        it("Calls event.retain() before this.execute()", () => {
+            const handler = new MyHandler();
+            const event = new Event("event", "emitter", { value: 1 });
+
+            expect(event.finished).is.true;
+
+            handler.handleEvent(event);
+
+            expect(event.finished).is.false;
+        });
+
+        it("Calls event.release() after this.execute()", async () => {
+            const handler = new MyHandler();
+            const event = new Event("event", "emitter", { value: 1 });
+
+            expect(event.finished).is.true;
+
+            await handler.handleEvent(event);
+
+            expect(event.finished).is.true;
+        });
+
+        it("Returns a void Promise", async () => {
+            const handler = new MyHandler();
+            const event = new Event("event", "emitter", { value: 1 });
+
+            expect(handler.handleEvent(event)).instanceOf(Promise);
+            expect(await handler.handleEvent(event)).is.undefined;
+        });
+    });
+
+    describe("onEnabled()", () => {
+        it("Returns undefined", async () => {
+            const handler = new MyHandler();
+
+            expect(handler.onEnabled()).is.undefined;
+        });
+    });
+
+    describe("onDisabled()", () => {
+        it("Returns undefined", async () => {
+            const handler = new MyHandler();
+
+            expect(handler.onDisabled()).is.undefined;
+        });
+    });
+});
 
 class MyHandler extends Handler<Controller<any>> {
-    public executionCount = 0;
+    public value = 0;
     public event: Event;
 
     public async execute(event: Event) {
         this.event = event;
-        this.executionCount++;
+        this.value += event.args.value ?? 0;
     }
 }
-
-describe("Handler", () => {
-    describe("handleEvent()", () => {
-        it("calls execute()", () => {
-            const handler = new MyHandler();
-            const event = new Event("event", { value: 1 }, "emitter");
-
-            handler.handleEvent(event);
-
-            expect(handler.event.args.value).equals(1);
-        });
-
-        it("retains event", () => {
-            const handler = new MyHandler();
-            const event = new Event("event", { value: 1 }, "emitter");
-
-            handler.handleEvent(event);
-
-            expect(event.retains).equals(1);
-        });
-
-        it("releases event", done => {
-            const handler = new MyHandler();
-            const event = new Event("event", { value: 1 }, "emitter");
-
-            handler.handleEvent(event);
-
-            event
-                .then(() => expect(event.retains).equals(0))
-                .then(() => done())
-                .catch(done);
-        });
-
-        it("skips execute() on missmatching event name", done => {
-            const handler = new MyHandler("other");
-            const event = new Event("event", { value: 1 }, "emitter");
-
-            handler.handleEvent(event);
-
-            event
-                .then(() => expect(handler.event).is.undefined)
-                .then(() => done())
-                .catch(done);
-        });
-
-        it("calls execute() on matching event name", done => {
-            const handler = new MyHandler("event");
-            const event = new Event("event", { value: 1 }, "emitter");
-
-            handler.handleEvent(event);
-
-            event
-                .then(() => expect(handler.event).is.not.undefined)
-                .then(() => done())
-                .catch(done);
-        });
-
-        it("calls execute() multiple times if once is false", () => {
-            const handler = new MyHandler();
-            const event = new Event("event", { value: 1 }, "emitter");
-
-            handler.handleEvent(event);
-            handler.handleEvent(event);
-
-            expect(handler.executionCount).equals(2);
-        });
-    });
-});

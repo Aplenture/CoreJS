@@ -8,9 +8,6 @@
 /** emitted when a controller has changes his enabled state */
 export const EVENT_ENABLED_CHANGED = "enabled_changed";
 
-/** emitted when cache value has changed */
-export const EVENT_CACHE_CHANGED = "cache_changed";
-
 /** emitted when app is initialized */
 export const EVENT_INIT = "init";
 

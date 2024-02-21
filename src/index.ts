@@ -6,4 +6,4 @@
  */
 
 export * from "./core";
-export * from "./utils";
+export * as Utils from "./utils";

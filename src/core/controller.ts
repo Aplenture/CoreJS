@@ -200,7 +200,7 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
      * @param emitter of event
      * @returns Event
      */
-    public emit(event: string, args: NodeJS.ReadOnlyDict<any> = this, emitter: string = this.name, timestamp?: number): Event {
+    public emit(event: string, args?: NodeJS.ReadOnlyDict<any>, emitter: string = this.name, timestamp?: number): Event {
         // disabled Controllers may not propagate events
         if (!this._enabled)
             throw new Error('controller is disabled');
@@ -210,7 +210,7 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
             return this.parent.emit(event, args, emitter, timestamp);
 
         // otherwise propagate event to event handlers
-        const instance = new Event(event, args, emitter, timestamp);
+        const instance = new Event(event, emitter, args, timestamp);
 
         // retain event until event handling
         instance.retain();

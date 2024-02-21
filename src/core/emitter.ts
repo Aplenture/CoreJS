@@ -14,16 +14,16 @@ import { Module } from "./module";
 export class Emitter<T extends Emitter<T>> extends Module<T> {
     /**
      * Calls parent.emit().
-     * Calls parent.emit() with the arguments.
+     * Calls parent.emit() with the args.
      * Catches unset parent.
      * @param event name.
-     * @param args default is this.
+     * @param args default is undefined.
      * @param emitter name, default is this.
      * @param timestamp default is undefined.
      * @returns an Event by parent when parent is set.
      * @returns undefined when parent is unset.
      */
-    public emit(event: string, args: NodeJS.ReadOnlyDict<any> = this, emitter: string = this.name, timestamp?: number): Event {
+    public emit(event: string, args?: NodeJS.ReadOnlyDict<any>, emitter: string = this.name, timestamp?: number): Event {
         if (this.parent)
             return this.parent.emit(event, args, emitter, timestamp);
     }

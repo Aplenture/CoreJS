@@ -47,6 +47,13 @@ describe("Module", () => {
             expect(parent.onAppendedCalled).is.false;
             expect(child.onAppendedCalled).is.true;
         });
+
+        it("Returns undefined", () => {
+            const parent = new MyModule("parent");
+            const child = new MyModule("child");
+
+            expect(parent.append(child)).is.undefined;
+        });
     });
 
     describe("depend()", () => {
@@ -77,6 +84,15 @@ describe("Module", () => {
             expect(parent.onDependedCalled).is.false;
             expect(child.onDependedCalled).is.true;
         });
+
+        it("Returns undefined", () => {
+            const parent = new MyModule("parent");
+            const child = new MyModule("child");
+
+            parent.append(child);
+
+            expect(parent.depend(child)).is.undefined;
+        });
     });
 
     describe("removeFromParent()", () => {
@@ -95,6 +111,31 @@ describe("Module", () => {
             const child = new MyModule("child");
 
             expect(() => child.removeFromParent()).not.throw();
+        });
+
+        it("Returns undefined", () => {
+            const parent = new MyModule("parent");
+            const child = new MyModule("child");
+
+            parent.append(child);
+
+            expect(child.removeFromParent()).is.undefined;
+        });
+    });
+
+    describe("onAppended()", () => {
+        it("Returns undefined", () => {
+            const module = new MyModule("module");
+
+            expect(module.onAppended()).is.undefined;
+        });
+    });
+
+    describe("onDepended()", () => {
+        it("Returns undefined", () => {
+            const module = new MyModule("module");
+
+            expect(module.onDepended()).is.undefined;
         });
     });
 });

@@ -22,8 +22,7 @@
         "url": "https://github.com/Aplenture/CoreJS/issues"
     },
     "homepage": "https://github.com/Aplenture/CoreJS#readme",
-    "dependencies": {
-    },
+    "dependencies": {},
     "devDependencies": {
         "@types/chai": "^4.3.4",
         "@types/chai-as-promised": "^7.1.5",

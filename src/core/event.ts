@@ -5,11 +5,13 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
-import { Serialization, Time } from "../utils";
+import * as Utils from "../utils";
 import { Delegatable, Delegate } from "./delegate";
-import { Serializable } from "./serializable";
 
 export class Event {
+    public readonly args: NodeJS.ReadOnlyDict<any>;
+    public readonly timestamp: number;
+
     private readonly _onData = new Delegate<any>();
     private readonly onRelease = new Delegate<any>();
 
@@ -18,10 +20,13 @@ export class Event {
 
     constructor(
         public readonly name: string,
-        public readonly args: NodeJS.ReadOnlyDict<any>,
         public readonly emitter: string,
-        public readonly timestamp = Date.now()
+        argsOrTimestamp?: NodeJS.ReadOnlyDict<any> | number,
+        timestamp?: number
     ) {
+        this.args = argsOrTimestamp instanceof Object ? argsOrTimestamp : {};
+        this.timestamp = typeof argsOrTimestamp == "number" ? argsOrTimestamp : timestamp ?? Date.now();
+
         this.onData.on(data => this.data = data);
     }
 
@@ -30,12 +35,7 @@ export class Event {
     public get onData(): Delegatable<any> { return this._onData; }
 
     public toString() {
-        const time = Time.format("YYYY-MM-DD hh:mm:ss", new Date(this.timestamp));
-        const event = this.args instanceof Serializable
-            ? this.name
-            : `${this.name} ${Serialization.toString(this.args)}`;
-
-        return `${time} >> ${this.emitter} emits ${event}`;
+        return `${Utils.Time.format("YYYY-MM-DD hh:mm:ss", new Date(this.timestamp))} >> ${this.emitter} emits ${this.name} ${Utils.Args.toString(this.args)}`;
     }
 
     public then<T>(callback?: (data) => T | PromiseLike<T>) {

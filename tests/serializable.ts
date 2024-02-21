@@ -52,9 +52,23 @@ describe("Serializable", () => {
         it("Calls this.fromJSON()", () => {
             const data = new MySerializable();
 
-            data.fromJSON({});
+            data.fromString("{}");
 
             expect(data.calledFromJSON).is.true;
+        });
+
+        it("Returns undefined", () => {
+            const data = new Serializable();
+
+            expect(data.fromString("{}")).is.undefined;
+        });
+    });
+
+    describe("fromJSON()", () => {
+        it("Returns undefined", () => {
+            const data = new Serializable();
+
+            expect(data.fromJSON({})).is.undefined;
         });
     });
 });

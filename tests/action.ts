@@ -73,7 +73,7 @@ describe("Action", () => {
     describe("handleEvent()", () => {
         it("skips execute() on missmatching event emitter", done => {
             const handler = new MyAction({ emitter: "other" });
-            const event = new Event("event", { value: 1 }, "emitter");
+            const event = new Event("event", "emitter", { value: 1 });
 
             handler.handleEvent(event);
 
@@ -85,7 +85,7 @@ describe("Action", () => {
 
         it("calls execute() on matching event emitter", done => {
             const handler = new MyAction({ emitter: "emitter" });
-            const event = new Event("event", { value: 1 }, "emitter");
+            const event = new Event("event", "emitter", { value: 1 });
 
             handler.handleEvent(event);
 
@@ -98,7 +98,7 @@ describe("Action", () => {
 
         it("calls execute() once is true", () => {
             const handler = new MyAction({ once: true });
-            const event = new Event("event", { value: 1 }, "emitter");
+            const event = new Event("event", "emitter", { value: 1 });
 
             handler.handleEvent(event);
             handler.handleEvent(event);
