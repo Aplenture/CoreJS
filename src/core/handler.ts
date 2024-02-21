@@ -9,35 +9,49 @@ import { Event } from "./event";
 import { Controller } from "./controller";
 import { Emitter } from "./emitter";
 
+/** Handles events with matching name. */
 export abstract class Handler<T extends Controller<T>> extends Emitter<T> {
-    protected abstract execute(event: Event): Promise<any>;
-
+    /**
+     * @param name optional event handling name, when empty handler responds on every event.
+     */
     constructor(name?: string) {
         super(name);
     }
 
+    /**
+     * Called on event with matching name.
+     * Called on every when name is unset.
+     * @returns any Promise.
+     */
+    protected abstract execute(event: Event): Promise<any>;
+
+    /**
+     * Calls this.execute() on event with matching name.
+     * Calls this.execute() on every event when name is unset.
+     * Calls this.execute() with the event argument.
+     * Calls event.retain() before this.execute().
+     * Calls event.release() after this.execute().
+     * @returns a void Promise
+     */
     public async handleEvent(event: Event) {
-        // skip if name is missmatching
         if (this.name != undefined && this.name != event.name)
             return;
 
-        // retain event before execution
         event.retain();
 
         await this.execute(event);
 
-        // release event after execution
         event.release();
     }
 
     /**
-     * Called when controller is enabled.
+     * Called when parent is enabled.
      * It`s recommended to call super.onEnabled().
      */
     public onEnabled() { }
 
     /**
-     * Called when controller is disabled.
+     * Called when parent is disabled.
      * It`s recommended to call super.onDisabled().
      */
     public onDisabled() { }

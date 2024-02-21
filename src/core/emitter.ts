@@ -15,6 +15,10 @@ export class Emitter<T extends Emitter<T>> extends Module<T> {
     /**
      * Calls parent.emit().
      * Catches unset parent.
+     * @param event name of event
+     * @param args default is this
+     * @param emitter name of emiiter, default is this
+     * @param timestamp opitonal timestamp
      * @returns an Event by parent when parent is set.
      * @returns undefined when parent is unset.
      */
