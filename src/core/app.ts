@@ -19,10 +19,6 @@ export class App extends Controller<any> {
         this.cache = new Cache();
     }
 
-    /** App initialization state. */
-    public get initialized(): boolean { return this.get("cache_init"); }
-    private set initialized(value: boolean) { this.set("cache_init", value); }
-
     /**
      * Returns whether cache contains a value for a specific key.
      * @param key of the value
@@ -57,8 +53,7 @@ export class App extends Controller<any> {
      * Sets init to true in cache.
      */
     public init() {
-        this.initialized = true;
-        this.emit(EVENT_INIT);
+        this.set(EVENT_INIT, true);
     }
 
     public toJSON(): NodeJS.Dict<any> {

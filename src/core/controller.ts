@@ -23,16 +23,7 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
         super([name].concat(classes).join("/"));
     }
 
-    /**
-     * Initialization state of parent.
-     * If parent is not set, false is returned.
-     */
-    public get initialized(): boolean {
-        if (this.parent)
-            return this.parent.initialized;
-
-        return false;
-    }
+    public get initialized() { return this.get<boolean>(EVENT_INIT); }
 
     /** 
      * Enabled status of himself and all parents.
