@@ -31,7 +31,6 @@ describe("Event", () => {
             event.send(1);
 
             event
-                .await()
                 .then(data => expect(data).equals(1))
                 .then(() => done())
                 .catch(done);
@@ -44,7 +43,6 @@ describe("Event", () => {
             event.send(2);
 
             event
-                .await()
                 .then(data => expect(data).equals(2))
                 .then(() => done())
                 .catch(done);
@@ -57,7 +55,6 @@ describe("Event", () => {
 
             event.retain();
             event
-                .await()
                 .then(data => expect(data).equals(1))
                 .then(() => done())
                 .catch(done);
@@ -74,7 +71,6 @@ describe("Event", () => {
             event.release();
 
             event
-                .await()
                 .then(data => expect(data).equals(1))
                 .then(() => done())
                 .catch(done);

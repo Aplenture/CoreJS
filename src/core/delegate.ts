@@ -32,7 +32,7 @@ export interface Delegatable<T> {
     readonly off: (callback: DelegateCallback<T>) => void;
 
     /** Returns a promise to await next invoke. */
-    readonly await: () => Promise<T>;
+    readonly then: () => Promise<T>;
 }
 
 /** Allows multiple callback handling. */
@@ -62,8 +62,9 @@ export class Delegate<T> implements Delegatable<T> {
         this.callbacks = this.callbacks.filter(tmp => tmp != callback);
     }
 
-    public await() {
-        return new Promise<T>(resolve => this.once(data => resolve(data)));
+    public then<U>(callback?: (data: T) => U | PromiseLike<U>) {
+        return new Promise<T>(resolve => this.once(data => resolve(data)))
+            .then(callback);
     }
 
     /**

@@ -44,7 +44,7 @@ describe("Handler", () => {
 
             handler.handleEvent(event);
 
-            event.await()
+            event
                 .then(() => expect(event.retains).equals(0))
                 .then(() => done())
                 .catch(done);
@@ -56,7 +56,7 @@ describe("Handler", () => {
 
             handler.handleEvent(event);
 
-            event.await()
+            event
                 .then(() => expect(handler.event).is.undefined)
                 .then(() => done())
                 .catch(done);
@@ -68,7 +68,7 @@ describe("Handler", () => {
 
             handler.handleEvent(event);
 
-            event.await()
+            event
                 .then(() => expect(handler.event).is.not.undefined)
                 .then(() => done())
                 .catch(done);

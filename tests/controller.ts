@@ -232,7 +232,7 @@ describe("Controller", () => {
 
                 const event = controller.emit("event");
 
-                event.await()
+                event
                     .then(() => expect(event.retains).equals(0))
                     .then(() => done())
                     .catch(done);

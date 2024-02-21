@@ -50,10 +50,10 @@ export class Event {
     }
 
     /** Returns promise to wait until event is released. */
-    public await() {
+    public then<T>(callback?: (data) => T | PromiseLike<T>) {
         return this.retains == 0
-            ? Promise.resolve(this.data)
-            : this.onRelease.await();
+            ? Promise.resolve(this.data).then(callback)
+            : this.onRelease.then(callback);
     }
 
     /** Sends data via onData. */

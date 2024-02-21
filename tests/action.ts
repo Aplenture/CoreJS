@@ -78,7 +78,7 @@ describe("Action", () => {
 
             handler.handleEvent(event);
 
-            event.await()
+            event
                 .then(() => expect(handler.event).is.undefined)
                 .then(() => done())
                 .catch(done);
@@ -90,7 +90,7 @@ describe("Action", () => {
 
             handler.handleEvent(event);
 
-            event.await()
+            event
                 .then(() => expect(handler.event).is.not.undefined)
                 .then(() => done())
                 .catch(done);
