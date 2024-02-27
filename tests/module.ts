@@ -48,7 +48,7 @@ describe("Module", () => {
             expect(child.onAppendedCalled).is.true;
         });
 
-        it("Returns undefined", () => {
+        it("Returns void", () => {
             const parent = new MyModule("parent");
             const child = new MyModule("child");
 
@@ -85,7 +85,7 @@ describe("Module", () => {
             expect(child.onDependedCalled).is.true;
         });
 
-        it("Returns undefined", () => {
+        it("Returns void", () => {
             const parent = new MyModule("parent");
             const child = new MyModule("child");
 
@@ -113,7 +113,7 @@ describe("Module", () => {
             expect(() => child.removeFromParent()).not.throw();
         });
 
-        it("Returns undefined", () => {
+        it("Returns void", () => {
             const parent = new MyModule("parent");
             const child = new MyModule("child");
 
@@ -124,7 +124,7 @@ describe("Module", () => {
     });
 
     describe("onAppended()", () => {
-        it("Returns undefined", () => {
+        it("Returns void", () => {
             const module = new MyModule("module");
 
             expect(module.onAppended()).is.undefined;
@@ -132,7 +132,7 @@ describe("Module", () => {
     });
 
     describe("onDepended()", () => {
-        it("Returns undefined", () => {
+        it("Returns void", () => {
             const module = new MyModule("module");
 
             expect(module.onDepended()).is.undefined;

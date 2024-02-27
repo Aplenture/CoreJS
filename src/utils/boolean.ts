@@ -5,30 +5,52 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
+/**
+ * @returns true if value is 1.
+ * @returns true if value is "true".
+ * @returns true if value is "y".
+ * @returns true if value is "yes".
+ * @returns false if value is 0.
+ * @returns false if value is "false".
+ * @returns false if value is "n".
+ * @returns false if value is "no".
+ * @returns undefined otherwise.
+ */
 export function toBoolean(value: any): boolean {
     if (undefined == value)
         return;
 
-    const lowercase = value
+    value = value
         .toString()
         .toLowerCase();
 
-    if (lowercase === "0") return false;
-    if (lowercase === "false") return false;
-    if (lowercase === "n") return false;
-    if (lowercase === "no") return false;
+    if (value === "0") return false;
+    if (value === "false") return false;
+    if (value === "n") return false;
+    if (value === "no") return false;
 
-    if (lowercase === "1") return true;
-    if (lowercase === "true") return true;
-    if (lowercase === "y") return true;
-    if (lowercase === "yes") return true;
+    if (value === "1") return true;
+    if (value === "true") return true;
+    if (value === "y") return true;
+    if (value === "yes") return true;
 
     return undefined;
 }
 
-export function toString(value: any): string {
-    if (value)
-        return "1"
+/**
+ * @returns "true" if value is 1.
+ * @returns "true" if value is "true".
+ * @returns "true" if value is "y".
+ * @returns "true" if value is "yes".
+ * @returns "false" if value is 0.
+ * @returns "false" if value is "false".
+ * @returns "false" if value is "n".
+ * @returns "false" if value is "no".
+ * @returns "false" otherwise.
+ */
+export function fromBoolean(value: any): string {
+    if (toBoolean(value))
+        return "true"
 
-    return "0";
+    return "false";
 }

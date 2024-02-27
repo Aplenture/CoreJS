@@ -10,13 +10,13 @@ import { Serializable } from "../src";
 
 describe("Serializable", () => {
     describe("toJSON()", () => {
-        it("Parses to json object", () => {
+        it("Parses to object", () => {
             const data = new Serializable();
 
             expect(data.toJSON()).instanceOf(Object);
         });
 
-        it("Returns an empty Object", () => {
+        it("Returns empty Object", () => {
             const data = new Serializable();
 
             expect(data.toJSON()).instanceOf(Object);
@@ -25,10 +25,10 @@ describe("Serializable", () => {
     });
 
     describe("toString()", () => {
-        it("Parses to json string", () => {
+        it("Parses to string", () => {
             const data = new MySerializable("hello world");
 
-            expect(data.toString()).equals('{"value":"hello world"}');
+            expect(data.toString()).is.a('string');
         });
 
         it("Calls this.toJSON()", () => {
@@ -37,6 +37,12 @@ describe("Serializable", () => {
             data.toString();
 
             expect(data.calledToJSON).is.true;
+        });
+
+        it("Returns json string", () => {
+            const data = new MySerializable("hello world");
+
+            expect(data.toString()).equals('{"value":"hello world"}');
         });
     });
 
@@ -57,7 +63,13 @@ describe("Serializable", () => {
             expect(data.calledFromJSON).is.true;
         });
 
-        it("Returns undefined", () => {
+        it("Argument data json string, throws an Error on invalid format", () => {
+            const data = new MySerializable("hello world");
+
+            expect(() => data.fromString("hello world")).throws("invalid json format");
+        });
+
+        it("Returns void", () => {
             const data = new Serializable();
 
             expect(data.fromString("{}")).is.undefined;
@@ -65,7 +77,7 @@ describe("Serializable", () => {
     });
 
     describe("fromJSON()", () => {
-        it("Returns undefined", () => {
+        it("Returns void", () => {
             const data = new Serializable();
 
             expect(data.fromJSON({})).is.undefined;

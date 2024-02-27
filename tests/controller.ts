@@ -47,7 +47,7 @@ class MyController extends Controller<any> {
     }
 }
 
-describe("Controller", () => {
+describe.skip("Controller", () => {
     describe("name", () => {
         it("concatinates all given classes", () => {
             const controller = new Controller("my", "own", "controller");

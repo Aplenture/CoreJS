@@ -10,35 +10,43 @@
  */
 export class Serializable {
     /** 
-     * Parses to json string.
+     * Parses to string.
      * Calls this.toJSON().
      * It`s recommended to call super.toString().
+     * @returns json string.
      */
-    public toString() {
+    public toString(): string {
         return JSON.stringify(this.toJSON());
     }
 
     /** 
-     * Parses to json object.
+     * Parses to object.
      * It`s recommended to call super.toJSON().
-     * @returns an empty Object.
+     * @returns empty Object.
      */
     public toJSON(): NodeJS.Dict<any> {
         return {};
     }
 
     /** 
-     * Parses from json string.
+     * Parses from string.
      * Calls this.fromJSON().
      * It`s recommended to call super.fromString().
+     * @argument data json string, throws an Error on invalid format.
      */
-    public fromString(data: string) {
-        this.fromJSON(JSON.parse(data));
+    public fromString(data: string): void {
+        try {
+            data = JSON.parse(data);
+        } catch (error) {
+            throw new Error("invalid json format");
+        }
+
+        this.fromJSON(data as any);
     }
 
     /** 
-     * Parses from json object.
+     * Parses from object.
      * It`s recommended to call super.fromJSON().
      */
-    public fromJSON(data: NodeJS.ReadOnlyDict<any>) { }
+    public fromJSON(data: NodeJS.ReadOnlyDict<any>): void { }
 }

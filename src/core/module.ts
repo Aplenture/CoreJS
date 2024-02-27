@@ -29,7 +29,7 @@ export class Module<T extends Module<T>> extends Serializable {
      * Calls child.onAppended() after setting parent.
      * It`s recommended to call super.append().
      */
-    public append(child: Module<Module<T>>) {
+    public append(child: Module<Module<T>>): void {
         if (child.parent == this)
             throw new Error("parent is already this");
 
@@ -44,7 +44,7 @@ export class Module<T extends Module<T>> extends Serializable {
      * Calls child.onDepended() after setting parent.
      * It`s recommended to call super.depend().
      */
-    public depend(child: Module<Module<T>>) {
+    public depend(child: Module<Module<T>>): void {
         if (child.parent != this)
             throw new Error("parent is not this");
 
@@ -57,7 +57,7 @@ export class Module<T extends Module<T>> extends Serializable {
      * Catches unset parent.
      * It`s recommended to call super.removeFromParent().
      */
-    public removeFromParent() {
+    public removeFromParent(): void {
         if (this.parent)
             this.parent.depend(this);
     }
@@ -66,11 +66,11 @@ export class Module<T extends Module<T>> extends Serializable {
      * Called when parent is set.
      * It`s recommended to call super.onAppended().
      */
-    protected onAppended() { }
+    protected onAppended(): void { }
 
     /** 
      * Called when parent is unset.
      * It`s recommended to call super.onDepended().
      */
-    protected onDepended() { }
+    protected onDepended(): void { }
 }

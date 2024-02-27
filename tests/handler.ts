@@ -59,7 +59,7 @@ describe("Handler", () => {
             expect(event.finished).is.true;
         });
 
-        it("Returns a void Promise", async () => {
+        it("Returns void Promise", async () => {
             const handler = new MyHandler();
             const event = new Event("event", "emitter", { value: 1 });
 
@@ -69,7 +69,7 @@ describe("Handler", () => {
     });
 
     describe("onEnabled()", () => {
-        it("Returns undefined", async () => {
+        it("Returns void", async () => {
             const handler = new MyHandler();
 
             expect(handler.onEnabled()).is.undefined;
@@ -77,7 +77,7 @@ describe("Handler", () => {
     });
 
     describe("onDisabled()", () => {
-        it("Returns undefined", async () => {
+        it("Returns void", async () => {
             const handler = new MyHandler();
 
             expect(handler.onDisabled()).is.undefined;

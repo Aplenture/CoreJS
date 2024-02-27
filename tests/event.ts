@@ -8,5 +8,5 @@
 import { expect } from "chai";
 import { Event } from "../src";
 
-describe("Event", () => {
+describe.skip("Event", () => {
 });

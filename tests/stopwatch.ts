@@ -8,5 +8,5 @@
 import { expect } from "chai";
 import { Stopwatch } from "../src";
 
-describe("Stopwatch", () => {
+describe.skip("Stopwatch", () => {
 });

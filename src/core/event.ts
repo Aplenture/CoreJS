@@ -35,7 +35,7 @@ export class Event {
     public get onData(): Delegatable<any> { return this._onData; }
 
     public toString() {
-        return `${Utils.Time.format("YYYY-MM-DD hh:mm:ss", new Date(this.timestamp))} >> ${this.emitter} emits ${this.name} ${Utils.Args.toString(this.args)}`;
+        return `${Utils.Time.format("YYYY-MM-DD hh:mm:ss", new Date(this.timestamp))} >> ${this.emitter} emits ${this.name} ${Utils.Args.fromArgs(this.args)}`;
     }
 
     public then<T>(callback?: (data) => T | PromiseLike<T>) {

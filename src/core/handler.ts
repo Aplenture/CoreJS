@@ -32,9 +32,9 @@ export abstract class Handler<T extends Controller<T>> extends Emitter<T> {
      * Calls this.execute() with the event argument.
      * Calls event.retain() before this.execute().
      * Calls event.release() after this.execute().
-     * @returns a void Promise
+     * @returns void Promise
      */
-    public async handleEvent(event: Event) {
+    public async handleEvent(event: Event): Promise<void> {
         if (this.name != undefined && this.name != event.name)
             return;
 
@@ -49,11 +49,11 @@ export abstract class Handler<T extends Controller<T>> extends Emitter<T> {
      * Called when parent is enabled.
      * It`s recommended to call super.onEnabled().
      */
-    public onEnabled() { }
+    public onEnabled(): void { }
 
     /**
      * Called when parent is disabled.
      * It`s recommended to call super.onDisabled().
      */
-    public onDisabled() { }
+    public onDisabled(): void { }
 }

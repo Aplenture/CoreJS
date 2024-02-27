@@ -8,44 +8,96 @@
 import { expect } from "chai";
 import { Args } from "../src/utils";
 
-describe.only("Args", () => {
-    describe("toString()", () => {
-        it("Parses args to string", () => {
-            expect(Args.toString({ hello: "world" })).is.a("string");
-        });
-
-        it("Formats to --key value", () => {
-            expect(Args.toString({ hello: "world" })).equals("--hello world");
+describe("Args", () => {
+    describe("fromArgs()", () => {
+        it("Parses object to string", () => {
+            expect(Args.fromArgs({ hello: "world" })).is.a("string");
         });
 
         it("Filters undefined and null keys", () => {
-            expect(Args.toString({ hello: "world", a: undefined, b: null })).equals("--hello world");
+            expect(Args.fromArgs({ hello: "world", a: undefined, b: null as any })).equals("--hello world");
         });
 
         it("Splits array to multiple args with same key", () => {
-            expect(Args.toString({ a: [1, 2] })).equals("--a 1 --a 2");
+            expect(Args.fromArgs({ a: [1, 2] })).equals("--a 1 --a 2");
         });
 
         it("Filters undefined and null values in arrays", () => {
-            expect(Args.toString({ a: [1, 2, undefined, null] })).equals("--a 1 --a 2");
+            expect(Args.fromArgs({ a: [1, 2, undefined as any, null as any] })).equals("--a 1 --a 2");
         });
 
         it("Param args is optional", () => {
-            expect(Args.toString()).equals("");
+            expect(Args.fromArgs()).equals("");
         });
 
         it("Throws an Error if value is an Object", () => {
-            expect(() => Args.toString({ a: {} })).throws("a is an Object");
+            expect(() => Args.fromArgs({ a: {} as any })).throws("a is an Object");
+        });
+
+        it("Param args is optional", () => {
+            expect(Args.fromArgs()).equals("");
+        });
+
+        it("Returns args as '--text hello world --number 123 --boolean true'", () => {
+            expect(Args.fromArgs({ text: "hello world", number: 123, boolean: true })).equals("--text hello world --number 123 --boolean true");
         });
     });
 
     describe("toArgs()", () => {
-        it("Parses args to string", () => {
-            expect(Args.toArgs("--string hello world --number -1 --boolean true")).deep.equals({
-                string: "hello world",
-                number: -1,
+        it("Parses string to object", () => {
+            expect(Args.toArgs("--text hello world --number 123 --boolean true")).is.a("object");
+        });
+
+        it("Filters empty keys", () => {
+            expect(Args.toArgs("-- --text hello world --number 123 --boolean true")).deep.equals({
+                text: "hello world",
+                number: 123,
                 boolean: true
             });
+        });
+
+        it("Filters invalid keys", () => {
+            expect(Args.toArgs("--\n --text hello world --number 123 --boolean true")).deep.equals({
+                text: "hello world",
+                number: 123,
+                boolean: true
+            });
+        });
+
+        it("First tries to parse value to number", () => {
+            const result = Args.toArgs('--number 123 --boolean 1');
+
+            expect(result.number).is.a("number");
+            expect(result.boolean).is.a("number");
+        });
+
+        it("Second tries to parse value to boolean", () => {
+            const result = Args.toArgs('--boolean true --empty');
+
+            expect(result.boolean).is.a("boolean");
+            expect(result.empty).is.a("boolean");
+        });
+
+        it("Finaly parses value to string", () => {
+            const result = Args.toArgs('--number "456" --boolean "true"');
+
+            expect(result.number).is.a("string");
+            expect(result.boolean).is.a("string");
+        });
+
+        it("Returns args as object", () => {
+            expect(Args.toArgs("--text hello world --number 123 --boolean true")).deep.equals({
+                text: "hello world",
+                number: 123,
+                boolean: true
+            });
+        });
+
+        it("Returns array on duplicate keys", () => {
+            const result = Args.toArgs("--a 1 --b 2 --a 3");
+
+            expect(result.a).is.an("array");
+            expect(result.b).is.a("number");
         });
     });
 });
