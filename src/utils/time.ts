@@ -7,9 +7,13 @@
 
 /** Time units in milliseconds. */
 export enum Milliseconds {
+    /** One second in milliseconds. */
     Second = 1000,
+    /** One minute in milliseconds. */
     Minute = 60 * Second,
+    /** One hour in milliseconds. */
     Hour = 60 * Minute,
+    /** One day in milliseconds. */
     Day = 24 * Hour
 }
 
@@ -46,8 +50,8 @@ export enum Month {
     December
 }
 
-/** Options to calculate a date. */
-export interface DateOpitons {
+/** Options to calculate a Date. */
+export interface DateOptions {
     /** 
      * The reference to calculate the date.
      * Default is current date.
@@ -153,8 +157,19 @@ export interface AddOpitons {
     readonly milliseconds?: number;
 }
 
-/** Calculates local date by opitons. */
-export function date(options: DateOpitons = {}) {
+/**
+ * @argument options.date optional reference date to calculate the locale date.
+ * @argument options.year default is year of options.date.
+ * @argument options.month default is month of options.date.
+ * @argument options.monthDay default is month day of options.date.
+ * @argument options.hours default is 0.
+ * @argument options.minutes default is 0.
+ * @argument options.seconds default is 0.
+ * @argument options.milliseconds default is 0.
+ * @argument options.weekDay optional week day.
+ * @returns locale Date.
+ */
+export function date(options: DateOptions = {}): Date {
     const tmp = options.date || new Date();
 
     const result = new Date(
@@ -179,8 +194,18 @@ export function date(options: DateOpitons = {}) {
     return result;
 }
 
-/** Increases a local date by opitons. */
-export function add(options: AddOpitons = {}) {
+/**
+ * @argument options.date default is date().
+ * @argument options.years adds years to reference date.
+ * @argument options.months adds months to reference date.
+ * @argument options.days adds days to reference date.
+ * @argument options.hours adds hours to reference date.
+ * @argument options.minutes adds minutes to reference date.
+ * @argument options.seconds adds seconds to reference date.
+ * @argument options.milliseconds adds milliseconds to reference date.
+ * @returns locale Date.
+ */
+export function add(options: AddOpitons = {}): Date {
     const tmp = options.date || date();
 
     return new Date(
@@ -194,8 +219,18 @@ export function add(options: AddOpitons = {}) {
     );
 }
 
-/** Decreases a local date by opitons. */
-export function reduce(options: AddOpitons = {}) {
+/**
+ * @argument options.date default is date().
+ * @argument options.years reduces years of reference date.
+ * @argument options.months reduces months of reference date.
+ * @argument options.days reduces days of reference date.
+ * @argument options.hours reduces hours of reference date.
+ * @argument options.minutes reduces minutes of reference date.
+ * @argument options.seconds reduces seconds of reference date.
+ * @argument options.milliseconds reduces milliseconds of reference date.
+ * @returns locale Date.
+ */
+export function reduce(options: AddOpitons = {}): Date {
     const tmp = options.date || date();
 
     return new Date(
@@ -210,10 +245,24 @@ export function reduce(options: AddOpitons = {}) {
 }
 
 /**
- * Parses date to string with specific format.
- * Example 1707136662666 to '2024-02-05 13:37:42.666'.
+ * @param format "YYYY" to full year.
+ * @param format "YY" to short year.
+ * @param format "MM" to month with leading zeros.
+ * @param format "DD" to days with leading zeros.
+ * @param format "M" to month without leading zeros.
+ * @param format "D" to days without leading zeros.
+ * @param format "mss" to milliseconds with leading zeros.
+ * @param format "hh" to hours with leading zeros.
+ * @param format "mm" to minuts with leading zeros.
+ * @param format "ss" to seconds with leading zeros.
+ * @param format "ms" to milliseconds without leading zeros.
+ * @param format "h" to hours without leading zeros.
+ * @param format "m" to minutes without leading zeros.
+ * @param format "s" to seconds without leading zeros.
+ * @param date reference, default is current locale Date.
+ * @returns formatted time string as "YYYY-MM-DD hh:mm:ss.mss".
  */
-export function format(format = "YYYY-MM-DD hh:mm:ss.mss", date = new Date()) {
+export function format(format = "YYYY-MM-DD hh:mm:ss.mss", date = new Date()): string {
     const year = date.getFullYear().toString();
     const month = (date.getMonth() + 1).toString();
     const day = date.getDate().toString();

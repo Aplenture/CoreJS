@@ -5,5 +5,6 @@
  * License https://github.com/Aplenture/CoreJS/blob/main/LICENSE
  */
 
+export * from "./constants";
 export * from "./core";
 export * as Utils from "./utils";

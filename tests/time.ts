@@ -8,403 +8,265 @@
 import { expect } from "chai";
 import { Time } from "../src/utils";
 
-describe.skip("Time", () => {
-    describe("format()", () => {
-        it("serializes complete Date", () => {
-            const format = Time.format("YYYY-MM-DD hh:mm:ss.mss", new Date("2024-02-05T13:37:42.666"));
-
-            expect(format).equals("2024-02-05 13:37:42.666");
-        });
-
-        it("serializes without time", () => {
-            const format = Time.format("YYYY-MM-DD", new Date("2024-02-05T13:37:42.666"));
-
-            expect(format).equals("2024-02-05");
-        });
-
-        it("serializes time only", () => {
-            const format = Time.format("hh:mm:ss.mss", new Date("2024-02-05T13:37:42.666"));
-
-            expect(format).equals("13:37:42.666");
-        });
-
-        it("serializes without milliseconds", () => {
-            const format = Time.format("YYYY-MM-DD hh:mm:ss", new Date("2024-02-05T13:37:42.666"));
-
-            expect(format).equals("2024-02-05 13:37:42");
-        });
-    });
-
+describe("Time", () => {
     describe("date()", () => {
-        describe("date", () => {
-            it("calculates start of day", () => {
-                const reference = new Date();
-                const date = Time.date();
+        it("Argument options.date optional reference date to calculate the locale date", () => {
+            const date = new Date("2023-01-27T00:00");
 
-                expect(date.getFullYear()).equals(reference.getFullYear(), "year");
-                expect(date.getMonth()).equals(reference.getMonth(), "month");
-                expect(date.getDate()).equals(reference.getDate(), "day");
-                expect(date.getHours()).equals(0, "hours");
-                expect(date.getMinutes()).equals(0, "minutes");
-                expect(date.getSeconds()).equals(0, "seconds");
-                expect(date.getMilliseconds()).equals(0, "milliseconds");
-            });
-
-            it("considers a different date reference", () => {
-                const date = new Date("2024-02-11");
-                const target = new Date("2024-02-11T00:00:00.000");
-
-                expect(Time.date({ date })).deep.equals(target);
-            });
+            expect(Time.date()).is.not.undefined;
+            expect(Time.date({ date }).getTime()).equals(date.getTime());
         });
 
-        describe("year", () => {
-            it("changes the year", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2023-02-12T00:00:00.000");
+        it("Argument options.year default is year of options.date", () => {
+            const date = new Date("2023-02-28T11:37:21.666");
 
-                expect(Time.date({ date, year: 2023 })).deep.equals(target);
-            });
+            expect(Time.date({ date, year: 2022 }).getFullYear()).equals(2022);
+            expect(Time.date({ date }).getFullYear()).equals(2023);
         });
 
-        describe("month", () => {
-            it("changes the month", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-01-12T00:00:00.000");
+        it("Argument options.month default is month of options.date", () => {
+            const date = new Date("2023-01-27T11:37:21.666");
 
-                expect(Time.date({ date, month: Time.Month.January })).deep.equals(target);
-            });
+            expect(Time.date({ date, month: Time.Month.December }).getMonth()).equals(Time.Month.December);
+            expect(Time.date({ date }).getMonth()).equals(Time.Month.January);
         });
 
-        describe("day", () => {
-            it("changes to first day of febrary", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-01T00:00:00.000");
+        it("Argument options.monthDay default is month day of options.date", () => {
+            const date = new Date("2023-01-27T11:37:21.666");
 
-                expect(Time.date({ date, monthDay: 1 })).deep.equals(target);
-            });
-
-            it("changes to last day of long febrary", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-29T00:00:00.000");
-
-                expect(Time.date({ date, monthDay: 29 })).deep.equals(target);
-            });
-
-            it("overflows to first day of march after short febrary", () => {
-                const date = new Date("2025-02-12");
-                const target = new Date("2025-03-01T00:00:00.000");
-
-                expect(Time.date({ date, monthDay: 29 })).deep.equals(target);
-            });
+            expect(Time.date({ date, monthDay: 2 }).getDate()).equals(2);
+            expect(Time.date({ date }).getDate()).equals(27);
         });
 
-        describe("week day", () => {
-            it("changes from monday to saturday", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-17T00:00:00.000");
+        it("Argument options.hours default is 0", () => {
+            const date = new Date("2023-01-27T11:37:21.666");
 
-                expect(Time.date({ date, weekDay: Time.WeekDay.Saturday })).deep.equals(target);
-            });
-
-            it("changes from monday to sunday", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-11T00:00:00.000");
-
-                expect(Time.date({ date, weekDay: Time.WeekDay.Sunday })).deep.equals(target);
-            });
-
-            it("changes from sunday to monday", () => {
-                const date = new Date("2024-02-11");
-                const target = new Date("2024-02-12T00:00:00.000");
-
-                expect(Time.date({ date, weekDay: Time.WeekDay.Monday })).deep.equals(target);
-            });
-
-            it("changes from sunday to saturday", () => {
-                const date = new Date("2024-02-11");
-                const target = new Date("2024-02-17T00:00:00.000");
-
-                expect(Time.date({ date, weekDay: Time.WeekDay.Saturday })).deep.equals(target);
-            });
+            expect(Time.date({ date, hours: 9 }).getHours()).equals(9);
+            expect(Time.date({ date }).getHours()).equals(0);
         });
 
-        describe("hours", () => {
-            it("changes hours", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-12T01:00:00.000");
+        it("Argument options.minutes default is 0", () => {
+            const date = new Date("2023-01-27T11:37:21.666");
 
-                expect(Time.date({ date, hours: 1 })).deep.equals(target);
-            });
-
-            it("overflows hours to days", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-13T01:00:00.000");
-
-                expect(Time.date({ date, hours: 25 })).deep.equals(target);
-            });
+            expect(Time.date({ date, minutes: 13 }).getMinutes()).equals(13);
+            expect(Time.date({ date }).getMinutes()).equals(0);
         });
 
-        describe("minutes", () => {
-            it("changes minutes", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-12T00:01:00.000");
+        it("Argument options.seconds default is 0", () => {
+            const date = new Date("2023-01-27T11:37:21.666");
 
-                expect(Time.date({ date, minutes: 1 })).deep.equals(target);
-            });
-
-            it("overflows minutes to hours", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-12T01:01:00.000");
-
-                expect(Time.date({ date, minutes: 61 })).deep.equals(target);
-            });
+            expect(Time.date({ date, seconds: 37 }).getSeconds()).equals(37);
+            expect(Time.date({ date }).getSeconds()).equals(0);
         });
 
-        describe("seconds", () => {
-            it("changes seconds", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-12T00:00:01.000");
+        it("Argument options.milliseconds default is 0", () => {
+            const date = new Date("2023-01-27T11:37:21.666");
 
-                expect(Time.date({ date, seconds: 1 })).deep.equals(target);
-            });
-
-            it("overflows seconds to minutes", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-12T00:01:01.000");
-
-                expect(Time.date({ date, seconds: 61 })).deep.equals(target);
-            });
+            expect(Time.date({ date, milliseconds: 123 }).getMilliseconds()).equals(123);
+            expect(Time.date({ date }).getMilliseconds()).equals(0);
         });
 
-        describe("milliseconds", () => {
-            it("changes milliseconds", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-12T00:00:00.001");
+        it("Returns locale Date", () => {
+            const date = Time.date();
 
-                expect(Time.date({ date, milliseconds: 1 })).deep.equals(target);
-            });
-
-            it("overflows milliseconds to seconds", () => {
-                const date = new Date("2024-02-12");
-                const target = new Date("2024-02-12T00:00:01.001");
-
-                expect(Time.date({ date, milliseconds: 1001 })).deep.equals(target);
-            });
+            expect(date).is.a("date");
+            expect(date.getTimezoneOffset()).equals(new Date().getTimezoneOffset());
         });
     });
 
     describe("add()", () => {
-        describe("years", () => {
-            it("adds the year", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2025-02-12T00:00:00.000");
+        it("Argument options.default is date()", () => {
+            const date = new Date("2023-01-27T00:00");
 
-                expect(Time.add({ date, years: 1 })).deep.equals(target);
-            });
+            expect(Time.add().getTime()).equals(Time.date().getTime());
+            expect(Time.add({ date }).getTime()).equals(date.getTime());
         });
 
-        describe("months", () => {
-            it("adds the month", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-03-12T00:00:00.000");
+        it("Argument options.years adds years to reference date", () => {
+            const date = new Date("2021-01-25T09:35:19.664");
 
-                expect(Time.add({ date, months: 1 })).deep.equals(target);
-            });
-
-            it("overflows to year", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2025-01-12T00:00:00.000");
-
-                expect(Time.add({ date, months: 11 })).deep.equals(target);
-            });
+            expect(Time.add({ date, years: 2 }).getFullYear()).equals(2023);
         });
 
-        describe("days", () => {
-            it("adds the day", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-13T00:00:00.000");
+        it("Argument options.months adds months to reference date", () => {
+            const date = new Date("2021-01-25T09:35:19.664");
 
-                expect(Time.add({ date, days: 1 })).deep.equals(target);
-            });
-
-            it("overflows to month", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-03-01T00:00:00.000");
-
-                expect(Time.add({ date, days: 18 })).deep.equals(target);
-            });
+            expect(Time.add({ date, months: 2 }).getMonth()).equals(Time.Month.March);
         });
 
-        describe("hours", () => {
-            it("adds the hours", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-12T01:00:00.000");
+        it("Argument options.days adds days to reference date", () => {
+            const date = new Date("2021-01-25T09:35:19.664");
 
-                expect(Time.add({ date, hours: 1 })).deep.equals(target);
-            });
-
-            it("overflows to day", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-13T00:00:00.000");
-
-                expect(Time.add({ date, hours: 24 })).deep.equals(target);
-            });
+            expect(Time.add({ date, days: 2 }).getDate()).equals(27);
         });
 
-        describe("minutes", () => {
-            it("adds the minutes", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-12T00:01:00.000");
+        it("Argument options.hours adds hours to reference date", () => {
+            const date = new Date("2021-01-25T09:35:19.664");
 
-                expect(Time.add({ date, minutes: 1 })).deep.equals(target);
-            });
-
-            it("overflows to hours", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-12T01:00:00.000");
-
-                expect(Time.add({ date, minutes: 60 })).deep.equals(target);
-            });
+            expect(Time.add({ date, hours: 2 }).getHours()).equals(11);
         });
 
-        describe("seconds", () => {
-            it("adds the seconds", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-12T00:00:01.000");
+        it("Argument options.minutes adds minutes to reference date", () => {
+            const date = new Date("2021-01-25T09:35:19.664");
 
-                expect(Time.add({ date, seconds: 1 })).deep.equals(target);
-            });
-
-            it("overflows to minutes", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-12T00:01:00.000");
-
-                expect(Time.add({ date, seconds: 60 })).deep.equals(target);
-            });
+            expect(Time.add({ date, minutes: 2 }).getMinutes()).equals(37);
         });
 
-        describe("milliseconds", () => {
-            it("adds the milliseconds", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-12T00:00:00.001");
+        it("Argument options.seconds adds seconds to reference date", () => {
+            const date = new Date("2021-01-25T09:35:19.664");
 
-                expect(Time.add({ date, milliseconds: 1 })).deep.equals(target);
-            });
+            expect(Time.add({ date, seconds: 2 }).getSeconds()).equals(21);
+        });
 
-            it("overflows to seconds", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-12T00:00:01.000");
+        it("Argument options.milliseconds adds milliseconds to reference date", () => {
+            const date = new Date("2021-01-25T09:35:19.664");
 
-                expect(Time.add({ date, milliseconds: 1000 })).deep.equals(target);
-            });
+            expect(Time.add({ date, milliseconds: 2 }).getMilliseconds()).equals(666);
+        });
+
+        it("Returns locale Date", () => {
+            const date = Time.add();
+
+            expect(date).is.a("date");
+            expect(date.getTimezoneOffset()).equals(new Date().getTimezoneOffset());
         });
     });
 
     describe("reduce()", () => {
-        describe("years", () => {
-            it("reduces the year", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2023-02-12T00:00:00.000");
+        it("Argument options.default is date()", () => {
+            const date = new Date("2023-01-27T00:00");
 
-                expect(Time.reduce({ date, years: 1 })).deep.equals(target);
-            });
+            expect(Time.reduce().getTime()).equals(Time.date().getTime());
+            expect(Time.reduce({ date }).getTime()).equals(date.getTime());
         });
 
-        describe("months", () => {
-            it("reduces the month", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-01-12T00:00:00.000");
+        it("Argument options.years reduce years of reference date", () => {
+            const date = new Date("2021-04-25T09:35:19.664");
 
-                expect(Time.reduce({ date, months: 1 })).deep.equals(target);
-            });
-
-            it("overflows to year", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2023-12-12T00:00:00.000");
-
-                expect(Time.reduce({ date, months: 2 })).deep.equals(target);
-            });
+            expect(Time.reduce({ date, years: 2 }).getFullYear()).equals(2019);
         });
 
-        describe("days", () => {
-            it("reduces the day", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-11T00:00:00.000");
+        it("Argument options.months reduce months of reference date", () => {
+            const date = new Date("2021-04-25T09:35:19.664");
 
-                expect(Time.reduce({ date, days: 1 })).deep.equals(target);
-            });
-
-            it("overflows to month", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-01-31T00:00:00.000");
-
-                expect(Time.reduce({ date, days: 12 })).deep.equals(target);
-            });
+            expect(Time.reduce({ date, months: 2 }).getMonth()).equals(Time.Month.February);
         });
 
-        describe("hours", () => {
-            it("reduces the hours", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12, hours: 1 });
-                const target = new Date("2024-02-12T00:00:00.000");
+        it("Argument options.days reduce days of reference date", () => {
+            const date = new Date("2021-04-25T09:35:19.664");
 
-                expect(Time.reduce({ date, hours: 1 })).deep.equals(target);
-            });
-
-            it("overflows to day", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-11T23:00:00.000");
-
-                expect(Time.reduce({ date, hours: 1 })).deep.equals(target);
-            });
+            expect(Time.reduce({ date, days: 2 }).getDate()).equals(23);
         });
 
-        describe("minutes", () => {
-            it("reduces the minutes", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12, minutes: 1 });
-                const target = new Date("2024-02-12T00:00:00.000");
+        it("Argument options.hours reduce hours of reference date", () => {
+            const date = new Date("2021-04-25T09:35:19.664");
 
-                expect(Time.reduce({ date, minutes: 1 })).deep.equals(target);
-            });
-
-            it("overflows to hours", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-11T23:59:00.000");
-
-                expect(Time.reduce({ date, minutes: 1 })).deep.equals(target);
-            });
+            expect(Time.reduce({ date, hours: 2 }).getHours()).equals(7);
         });
 
-        describe("seconds", () => {
-            it("reduces the seconds", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12, seconds: 1 });
-                const target = new Date("2024-02-12T00:00:00.000");
+        it("Argument options.minutes reduce minutes of reference date", () => {
+            const date = new Date("2021-04-25T09:35:19.664");
 
-                expect(Time.reduce({ date, seconds: 1 })).deep.equals(target);
-            });
-
-            it("overflows to minutes", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-11T23:59:59.000");
-
-                expect(Time.reduce({ date, seconds: 1 })).deep.equals(target);
-            });
+            expect(Time.reduce({ date, minutes: 2 }).getMinutes()).equals(33);
         });
 
-        describe("milliseconds", () => {
-            it("reduces the milliseconds", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12, milliseconds: 1 });
-                const target = new Date("2024-02-12T00:00:00.000");
+        it("Argument options.seconds reduce seconds of reference date", () => {
+            const date = new Date("2021-04-25T09:35:19.664");
 
-                expect(Time.reduce({ date, milliseconds: 1 })).deep.equals(target);
-            });
+            expect(Time.reduce({ date, seconds: 2 }).getSeconds()).equals(17);
+        });
 
-            it("overflows to seconds", () => {
-                const date = Time.date({ year: 2024, month: Time.Month.February, monthDay: 12 });
-                const target = new Date("2024-02-11T23:59:59.999");
+        it("Argument options.milliseconds reduce milliseconds of reference date", () => {
+            const date = new Date("2021-04-25T09:35:19.664");
 
-                expect(Time.reduce({ date, milliseconds: 1 })).deep.equals(target);
-            });
+            expect(Time.reduce({ date, milliseconds: 2 }).getMilliseconds()).equals(662);
+        });
+
+        it("Returns locale Date", () => {
+            const date = Time.reduce();
+
+            expect(date).is.a("date");
+            expect(date.getTimezoneOffset()).equals(new Date().getTimezoneOffset());
+        });
+    });
+
+    describe("format()", () => {
+        it('Param format "YYYY" to full year', () => {
+            expect(Time.format("YYYY", new Date("2023-02-27T11:37:21.666"))).equals("2023");
+        });
+
+        it('Param format "YY" to short year', () => {
+            expect(Time.format("YY", new Date("2023-02-27T11:37:21.666"))).equals("23");
+        });
+
+        it('Param format "MM" to month with leading zeros', () => {
+            expect(Time.format("MM", new Date("2023-02-27T11:37:21.666"))).equals("02");
+            expect(Time.format("MM", new Date("2023-11-27T11:37:21.666"))).equals("11");
+        });
+
+        it('Param format "DD" to days with leading zeros', () => {
+            expect(Time.format("DD", new Date("2023-02-09T11:37:21.666"))).equals("09");
+            expect(Time.format("DD", new Date("2023-02-27T11:37:21.666"))).equals("27");
+        });
+
+        it('Param format "M" to month without leading zeros', () => {
+            expect(Time.format("M", new Date("2023-02-27T11:37:21.666"))).equals("2");
+            expect(Time.format("M", new Date("2023-11-27T11:37:21.666"))).equals("11");
+        });
+
+        it('Param format "D" to days without leading zeros', () => {
+            expect(Time.format("D", new Date("2023-02-27T11:37:21.666"))).equals("27");
+            expect(Time.format("D", new Date("2023-02-09T11:37:21.666"))).equals("9");
+        });
+
+        it('Param format "mss" to milliseconds with leading zeros', () => {
+            expect(Time.format("mss", new Date("2023-02-27T11:37:21.666"))).equals("666");
+            expect(Time.format("mss", new Date("2023-02-27T11:37:21.066"))).equals("066");
+            expect(Time.format("mss", new Date("2023-02-27T11:37:21.006"))).equals("006");
+        });
+
+        it('Param format "hh" to hours with leading zeros', () => {
+            expect(Time.format("hh", new Date("2023-02-27T11:37:21.666"))).equals("11");
+            expect(Time.format("hh", new Date("2023-02-27T09:37:21.666"))).equals("09");
+        });
+
+        it('Param format "mm" to minutes with leading zeros', () => {
+            expect(Time.format("mm", new Date("2023-02-27T11:37:21.666"))).equals("37");
+            expect(Time.format("mm", new Date("2023-02-27T11:09:21.666"))).equals("09");
+        });
+
+        it('Param format "ss" to seconds with leading zeros', () => {
+            expect(Time.format("ss", new Date("2023-02-27T11:37:21.666"))).equals("21");
+            expect(Time.format("ss", new Date("2023-02-27T11:37:09.666"))).equals("09");
+        });
+
+        it('Param format "ms" to milliseconds without leading zeros', () => {
+            expect(Time.format("ms", new Date("2023-02-27T11:37:21.666"))).equals("666");
+            expect(Time.format("ms", new Date("2023-02-27T11:37:21.066"))).equals("66");
+            expect(Time.format("ms", new Date("2023-02-27T11:37:21.006"))).equals("6");
+        });
+
+        it('Param format "h" to hours without leading zeros', () => {
+            expect(Time.format("h", new Date("2023-02-27T11:37:21.666"))).equals("11");
+            expect(Time.format("h", new Date("2023-02-27T09:37:21.666"))).equals("9");
+        });
+
+        it('Param format "m" to minutes without leading zeros', () => {
+            expect(Time.format("m", new Date("2023-02-27T11:37:21.666"))).equals("37");
+            expect(Time.format("m", new Date("2023-02-27T11:09:21.666"))).equals("9");
+        });
+
+        it('Param format "s" to seconds without leading zeros', () => {
+            expect(Time.format("s", new Date("2023-02-27T11:37:21.666"))).equals("21");
+            expect(Time.format("s", new Date("2023-02-27T11:37:09.666"))).equals("9");
+        });
+
+        it('Param date reference, default is current locale Date', () => {
+            expect(new Date(Time.format("YYYY-MM-DDThh:mm:ss.mss")).getTime() / Time.Milliseconds.Second).equals(new Date().getTime() / Time.Milliseconds.Second);
+        });
+
+        it('Returns formatted time string as "YYYY-MM-DD hh:mm:ss.mss"', () => {
+            expect(Time.format(undefined, new Date("2023-02-27T11:37:21.666"))).equals("2023-02-27 11:37:21.666");
         });
     });
 });
