@@ -19,7 +19,7 @@ export class Module<T extends Module<T>> extends Serializable {
         super();
     }
 
-    public get parent() { return this._parent; }
+    public get parent(): T { return this._parent; }
     private set parent(value) { this._parent = value; }
 
     /**
