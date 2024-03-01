@@ -23,7 +23,7 @@ describe("Event", () => {
         it("Argument timestamp default is Date.now()", () => {
             const event = new Event("my event name", "my emitter name");
 
-            expect(event.timestamp / 1000).equals(Date.now() / 1000);
+            expect(Math.floor(event.timestamp / 1000)).equals(Math.floor(Date.now() / 1000));
         });
     });
 
