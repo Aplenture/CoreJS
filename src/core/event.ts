@@ -6,12 +6,13 @@
  */
 
 import * as Utils from "../utils";
-import { Delegatable, Delegate } from "./delegate";
+import { Delegate } from "./delegate";
 
 /**
  * Allows to send data from Handler to emitter.
+ * Extends Delegate to overwirte then() to prevent data handling of only one event Handler.
  */
-export class Event {
+export class Event extends Delegate<any> {
     /**
      * Any arguments from emitter.
      */
@@ -20,7 +21,6 @@ export class Event {
     /** Initial timestamp from Event. */
     public readonly timestamp: number;
 
-    private readonly _onData = new Delegate<any>();
     private readonly onRelease = new Delegate<any>();
 
     private data;
@@ -28,6 +28,7 @@ export class Event {
 
     /**
      * Allows to send data from Handler to emitter.
+     * Extends Delegate to overwirte then() to prevent data handling of only one event Handler.
      * @argument name of the Event.
      * @argument emitter of the Event.
      * @argument argsOrTimestamp Event timestamp as number or Event args as Object.
@@ -39,18 +40,15 @@ export class Event {
         argsOrTimestamp?: NodeJS.ReadOnlyDict<any> | number,
         timestamp?: number
     ) {
+        // set Event data to latest sent data
+        super(data => this.data = data);
+
         this.args = argsOrTimestamp instanceof Object ? argsOrTimestamp : {};
         this.timestamp = typeof argsOrTimestamp == "number" ? argsOrTimestamp : timestamp ?? Date.now();
-
-        // set Event data to latest sent data
-        this.onData.on(data => this.data = data);
     }
 
     /** Is true when all retains are released. */
     public get finished(): boolean { return this.retains == 0; }
-
-    /** Delegate to receive data from any Handler. */
-    public get onData(): Delegatable<any> { return this._onData; }
 
     /**
      * Parses Event properties to string.
@@ -69,13 +67,6 @@ export class Event {
             return Promise.resolve(this.data).then(callback);
 
         return this.onRelease.then(callback);
-    }
-
-    /**
-     * Sends data to emitter.
-     */
-    public send(data: any): void {
-        this._onData.invoke(data);
     }
 
     /**

@@ -81,27 +81,6 @@ describe("Event", () => {
         });
     });
 
-    describe("send()", () => {
-        it("Sends data to emitter", () => {
-            const event = new Event("my event name", "my emitter name");
-
-            let counter = 0;
-
-            event.onData.on(value => counter += value);
-            event.send(1);
-            event.send(2);
-            event.send(3);
-
-            expect(counter).equals(6);
-        });
-
-        it("Returns undefined", () => {
-            const event = new Event("my event name", "my emitter name");
-
-            expect(event.send(0)).is.undefined;
-        });
-    });
-
     describe("retain()", () => {
         it("Retains the Event until release is called", done => {
             const event = new Event("my event name", "my emitter name");

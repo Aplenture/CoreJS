@@ -6,128 +6,166 @@
  */
 
 import { expect } from "chai";
-import { Action, ActionCallback, Event, ActionState } from "../src";
+import { Action, ActionState, Event } from "../src";
 
 class MyAction extends Action {
-    public readonly execute: ActionCallback;
+    public removeFromParentCalled = false;
 
-    public event: Event;
-    public executionCount = 0;
-
-    public get state() { return super.state; }
+    public get state(): ActionState { return super.state; }
     public set state(value) { super.state = value; }
+
+    public removeFromParent(): void {
+        this.removeFromParentCalled = true;
+        super.removeFromParent();
+    }
 }
 
-describe.skip("Action", () => {
+describe("Action", () => {
     describe("constructor()", () => {
-        it("instantiates with config", () => {
-            const emitter = "my emitter";
-            const callback = async () => { };
-            const handler = new MyAction({ event: "event", emitter, once: true, callback });
-
-            expect(handler.name, "name").equals("event");
-            expect(handler.emitter, "emitter").equals(emitter);
-            expect(handler.execute, "execute").equals(callback);
-            expect(handler.once, "once").equals(true);
-        });
-
-        it("instantiates with callback only", () => {
-            const callback = async () => { };
-            const handler = new MyAction(callback);
-
-            expect(handler.execute, "execute").equals(callback);
-            expect(handler.name, "name").is.undefined;
-            expect(handler.emitter, "emitter").is.undefined;
-            expect(handler.once, "once").is.false;
-        });
-
-        it("instantiates with event name and callback only", () => {
-            const callback = async () => { };
-            const handler = new MyAction("event", callback);
-
-            expect(handler.name, "name").equals("event");
-            expect(handler.execute, "execute").equals(callback);
-            expect(handler.emitter, "emitter").is.undefined;
-            expect(handler.once, "once").is.false;
-        });
-
-        it("ignores callback argument when first argument is callback", () => {
-            const callback1 = async () => { };
-            const callback2 = async () => { };
-            const handler = new MyAction(callback1, callback2);
-
-            expect(handler.execute, "execute").equals(callback1);
-            expect(handler.execute, "execute").not.equals(callback2);
-        });
-
-        it("ignores callback argument when first argument is config", () => {
-            const callback1 = async () => { };
-            const callback2 = async () => { };
-            const handler = new MyAction({ callback: callback1 }, callback2);
-
-            expect(handler.execute, "execute").equals(callback1);
-            expect(handler.execute, "execute").not.equals(callback2);
+        it("Throws an Error if callback is not given", () => {
+            expect(() => new Action("test")).throws("invalid callback function");
+            expect(() => new Action("test", "test" as any)).throws("invalid callback function");
         });
     });
 
     describe("handleEvent()", () => {
-        it("skips execute() on missmatching event emitter", done => {
-            const handler = new MyAction({ emitter: "other" });
-            const event = new Event("event", "emitter", { value: 1 });
+        it("Executes callback on event with matching name", () => {
+            const event = new Event("my event", "my emitter");
+            const action = new Action(event.name, async () => counter += 1);
 
-            handler.handleEvent(event);
+            let counter = 0;
 
-            event
-                .then(() => expect(handler.event).is.undefined)
-                .then(() => done())
-                .catch(done);
+            action.handleEvent(event);
+            action.handleEvent(new Event("any event", event.emitter));
+
+            expect(counter, "has handled event with missmatching name").equals(1);
         });
 
-        it("calls execute() on matching event emitter", done => {
-            const handler = new MyAction({ emitter: "emitter" });
-            const event = new Event("event", "emitter", { value: 1 });
+        it("Executes callback on every event when name is unset", () => {
+            const event = new Event("my event", "my emitter");
+            const action = new Action(async () => counter += 1);
 
-            handler.handleEvent(event);
+            let counter = 0;
 
-            event
-                .then(() => expect(handler.event).is.not.undefined)
-                .then(() => done())
-                .catch(done);
+            action.handleEvent(event);
+            action.handleEvent(new Event("any event", event.emitter));
+
+            expect(counter, "has not handled any event").equals(2);
         });
 
+        it("Executes callback on event with matching emitter", () => {
+            const event = new Event("my event", "my emitter");
+            const action = new Action({ emitter: event.emitter }, async () => counter += 1);
 
-        it("calls execute() once is true", () => {
-            const handler = new MyAction({ once: true });
-            const event = new Event("event", "emitter", { value: 1 });
+            let counter = 0;
 
-            handler.handleEvent(event);
-            handler.handleEvent(event);
+            action.handleEvent(event);
+            action.handleEvent(new Event(event.name, "any emitter"));
 
-            expect(handler.state).equals(ActionState.Removing);
-            expect(handler.executionCount).equals(1);
+            expect(counter, "has handled event with missmatching emitter").equals(1);
+        });
+
+        it("Executes callback on every event when emitter is unset", () => {
+            const event = new Event("my event", "my emitter");
+            const action = new Action(async () => counter += 1);
+
+            let counter = 0;
+
+            action.handleEvent(event);
+            action.handleEvent(new Event(event.name, "any emitter"));
+
+            expect(counter, "has not handled any event emitter").equals(2);
+        });
+
+        it("Executes callback on one event when once is true", () => {
+            const event = new Event("my event", "my emitter");
+            const action = new Action({ once: true }, async () => counter += 1);
+
+            let counter = 0;
+
+            action.handleEvent(event);
+            action.handleEvent(event);
+
+            expect(counter, "has handled event multiple times").equals(1);
+        });
+
+        it("Changes state from once to removing on execution", () => {
+            const event = new Event("my event", "my emitter");
+            const action = new Action({ once: true }, async () => { });
+
+            expect(action.state).equals(ActionState.Once);
+
+            action.handleEvent(event);
+
+            expect(action.state).equals(ActionState.Removing);
+        });
+
+        it("Skips callback execution if state is removing", () => {
+            const event = new Event("my event", "my emitter");
+            const action = new MyAction(async () => counter += 1);
+
+            let counter = 0;
+
+            action.state = ActionState.Removing;
+            action.handleEvent(event);
+
+            expect(counter).equals(0);
+        });
+
+        it("Calls removeFromParent() when state is once and callback finished execution", async () => {
+            const event = new Event("my event", "my emitter");
+            const action = new MyAction({ once: true }, async () => { });
+
+            await action.handleEvent(event);
+
+            expect(action.removeFromParentCalled).is.true;
+        });
+
+        it("Returns undefined Promise", done => {
+            const event = new Event("my event", "my emitter");
+            const action = new MyAction(async () => { });
+            const result = action.handleEvent(event);
+
+            expect(result).is.a("promise");
+
+            result
+                .then(result => expect(result).is.undefined)
+                .then(() => done())
+                .catch(done);
         });
     });
 
-    describe("serialization", () => {
-        it("serializes the state", () => {
-            const handler = new MyAction("handler");
+    describe("toJSON()", () => {
+        it("Returns object with state of Action", () => {
+            expect(new MyAction(async () => { }).toJSON().state).equals(ActionState.Infinite);
+            expect(new MyAction({ once: true }, async () => { }).toJSON().state).equals(ActionState.Once);
+        });
+    });
 
-            expect(handler.toJSON()).deep.contains({ state: ActionState.Infinite });
+    describe("fromJSON()", () => {
+        it("Parses Action state from object", () => {
+            const state = ActionState.Once;
+            const action = new MyAction(async () => { });
 
-            handler.state = ActionState.Removing;
+            expect(action.state).equals(ActionState.Infinite);
 
-            expect(handler.toJSON()).deep.contains({ state: ActionState.Removing });
+            action.fromJSON({ state });
+
+            expect(action.state).equals(state);
         });
 
-        it("deserializes the state", () => {
-            const handler = new MyAction("handler");
+        it("Calls removeFromParent() if state is removing", () => {
+            const action = new MyAction(async () => { });
 
-            expect(handler.state).equals(ActionState.Infinite);
+            action.fromJSON({ state: ActionState.Removing });
 
-            handler.state = ActionState.Once;
-            handler.fromJSON({ state: ActionState.Removing });
+            expect(action.removeFromParentCalled).is.true;
+        });
 
-            expect(handler.state).equals(ActionState.Removing);
+        it("Returns undefined", () => {
+            const action = new MyAction(async () => { });
+
+            expect(action.fromJSON({ state: ActionState.Removing })).is.undefined;
         });
     });
 });

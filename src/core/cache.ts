@@ -7,10 +7,20 @@
 
 import { Serializable } from "./serializable";
 
-/** Data container with some usefull API's. */
+/** 
+ * Storage for app specific values.
+ * Contains usefull methods to handle values.
+ * Implements data serialization.
+ */
 export class Cache extends Serializable {
     private readonly data: NodeJS.Dict<any>;
 
+    /** 
+     * Storage for app specific values.
+     * Contains usefull methods to handle values.
+     * Implements data serialization.
+     * @param data copy of initial cache data.
+     */
     constructor(data: NodeJS.ReadOnlyDict<any> = {}) {
         super();
 
@@ -18,25 +28,25 @@ export class Cache extends Serializable {
     }
 
     /**
-     * Returns whether cache contains a value for a specific key.
-     * @param key of the value
+     * @param key of the value to test.
+     * @returns true when value of key is set. Otherwise false is returned.
      */
-    public has(key: string) {
+    public has(key: string): boolean {
         return this.data[key] !== undefined;
     }
 
     /**
-     * Returns the value of a key if set.
-     * Otherwise given default is set and returned.
-     * @param key of the value
-     * @param _default if key is unset, default will be set and returned
+     * Throws an Error if key is not a string.
+     * @param key of the value to get.
+     * @param _default optional default value.
+     * @returns value of given key if set.
+     * @returns otherwise _default if set.
+     * @returns otherwise undefined.
      */
     public get<T>(key: string, _default?: T): T {
-        // catch if key is not a string
         if (typeof key != "string")
-            throw new Error('key needs to be a string to return a value');
+            throw new Error("key needs to be a string");
 
-        // set default if key is unset
         if (this.data[key] === undefined)
             this.data[key] = _default;
 
@@ -44,19 +54,22 @@ export class Cache extends Serializable {
     }
 
     /**
-     * Changes the value of a key.
-     * Propagates changed data by onChange.
-     * @param key of the value
-     * @param value of the key
+     * Sets the value of given key.
+     * Throws an Error if key is not a string.
+     * @param key of the value to set.
+     * @param value of the key to set.
      */
-    public set(key: string, value: any) {
-        // catch if key is not a string
+    public set(key: string, value: any): void {
         if (typeof key != "string")
-            throw new Error('key needs to be a string to set a value');
+            throw new Error("key needs to be a string");
 
         this.data[key] = value;
     }
 
+    /**
+     * It`s recommended to call super.fromString().
+     * @returns object with data of cache.
+     */
     public toJSON(): NodeJS.Dict<any> {
         const data = super.toJSON();
 
@@ -65,13 +78,17 @@ export class Cache extends Serializable {
         return data;
     }
 
+    /** 
+     * Parses cache data from object.
+     * Calls set() for every key value pair in data.
+     * It`s recommended to call super.fromJSON().
+     */
     public fromJSON(data: NodeJS.ReadOnlyDict<any>): void {
         super.fromJSON(data);
 
         if (!data.data)
             return;
 
-        // change data by serialization
         Object.keys(data.data).forEach(key => this.set(key, data.data[key]));
     }
 }

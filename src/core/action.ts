@@ -10,29 +10,41 @@ import { Handler } from "./handler";
 
 export type ActionCallback = (event: Event) => Promise<any>;
 
+/**
+ * States of Action.
+ */
 export enum ActionState {
+    /** Action is called multiple times. */
     Infinite = 1,
+    /** Action is called only once. */
     Once,
+    /** Action was called once and will be removed after finishing event handling. */
     Removing
 }
 
+/**
+ * Config of Action.
+ */
 export interface ActionConfig {
-    /** If set execute() is called by events with this name only. */
+    /** If set, callback will be executed by events with this name only. */
     readonly event?: string;
-    /** If set execute() is called by emitter with this name only. */
+    /** If set, callback will be executed by emitter with this name only. */
     readonly emitter?: string;
     /**
-     * If set execute() is called only once.
+     * If true, callback will be executed only once.
      * After that removeFromParent() is called.
      */
     readonly once?: boolean;
-    /** Called on event execution */
+    /** Called on event execution if all event properties matching with Action properites. */
     readonly callback?: ActionCallback;
 }
 
-/** Event handler shell for callbacks */
+/**
+ * Handler with callback which is called on event handling.
+ * Contains different properties to handle events with specific properties only.
+ */
 export class Action extends Handler<any> {
-    /** If set execute() is called by emitter with this name only. */
+    /** If set, execute() is called by emitters with this name only. */
     public readonly emitter?: string;
 
     private _state = ActionState.Infinite;
@@ -40,10 +52,14 @@ export class Action extends Handler<any> {
     protected readonly execute: ActionCallback;
 
     /**
+     * Handler with callback which is called on event handling.
+     * Contains different properties to handle events with specific properties only.
+     * Throws an Error if callback is not given or not a function.
      * @param config config, event name or callback
      * @param callback callback
      */
     constructor(config: ActionConfig | string | ActionCallback, callback?: ActionCallback) {
+        // set name of handler by config or null
         super(typeof config == "string" ? config : !(config instanceof Function) ? config.event : null);
 
         if (config instanceof Function) {
@@ -62,34 +78,34 @@ export class Action extends Handler<any> {
             if (callback instanceof Function)
                 this.execute = callback
             else
-                throw new Error('invalid callback function');
+                throw new Error("invalid callback function");
     }
 
-    /** The current state. */
-    public get state() { return this._state; }
+    /** Current Action state. */
+    public get state(): ActionState { return this._state; }
     protected set state(value) { this._state = value; }
 
-    /** If true, the event is called only once. */
-    public get once() { return this.state != ActionState.Infinite; }
+    /** If true, the Action is called only once. */
+    public get once(): boolean { return this.state != ActionState.Infinite; }
 
-    /** 
-     * Calls execte() when
-     * handler name is not set or matches with event name
-     * and handler emitter is not set or matches with event emitter
-     * and handler state is not removing.
-     * calls event.retain() before execution and event.release() after execution.
-     * Removes itself after execution if state is once.
+    /**
+     * Executes callback on event with matching name.
+     * Executes callback on every event when name is unset.
+     * Executes callback on event with matching emitter.
+     * Executes callback on every event when emitter is unset.
+     * Executes callback on one event when once is true.
+     * Changes state from once to removing on execution.
+     * Skips callback execution if state is removing.
+     * Calls removeFromParent() when state is once and callback finished execution.
+     * It`s recommended to call super.handleEvent().
      */
-    public async handleEvent(event: Event) {
-        // skip if emitter is missmatching
+    public async handleEvent(event: Event): Promise<void> {
         if (this.emitter != undefined && this.emitter != event.emitter)
             return;
 
-        // skip if handler is removing from parent
         if (this.state == ActionState.Removing)
             return;
 
-        // change state to removing if once is enabled
         if (this.state == ActionState.Once)
             this.state = ActionState.Removing;
 
@@ -99,20 +115,30 @@ export class Action extends Handler<any> {
             this.removeFromParent();
     }
 
+    /**
+     * It`s recommended to call super.fromString().
+     * @returns object with state of Action.
+     */
     public toJSON(): NodeJS.Dict<any> {
         const data = super.toJSON();
 
-        // serialize state
         data.state = this.state;
 
         return data;
     }
 
+    /** 
+     * Parses Action state from object.
+     * Calls removeFromParent() if state is removing.
+     * It`s recommended to call super.fromJSON().
+     */
     public fromJSON(data: NodeJS.ReadOnlyDict<any>): void {
         super.fromJSON(data);
 
-        // deserialize state
         if (data.state)
             this.state = data.state;
+
+        if (this.state == ActionState.Removing)
+            this.removeFromParent();
     }
 }
