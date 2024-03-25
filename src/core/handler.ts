@@ -27,9 +27,9 @@ export abstract class Handler<T extends Controller<T>> extends Emitter<T> {
     protected abstract execute(event: Event): Promise<any>;
 
     /**
-     * Calls execute() on event with matching name.
-     * Calls execute() on every event when name is unset.
-     * Calls execute() with the event argument.
+     * Calls this.execute() on event with matching name.
+     * Calls this.execute() on every event when name is unset.
+     * Calls this.execute() with the event argument.
      * Calls event.retain() before execute().
      * Calls event.release() after execute().
      * It`s recommended to call super.handleEvent().

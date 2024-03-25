@@ -115,7 +115,7 @@ describe("Cache", () => {
             expect(cache.get("hello")).equals(data.hello);
         });
 
-        it("Calls set() for every key value pair in data", () => {
+        it("Calls this.set() for every key value pair in data", () => {
             const data = {
                 hello: "world",
                 additional: 1

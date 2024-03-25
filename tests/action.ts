@@ -112,7 +112,7 @@ describe("Action", () => {
             expect(counter).equals(0);
         });
 
-        it("Calls removeFromParent() when state is once and callback finished execution", async () => {
+        it("Calls this.removeFromParent() when state is once and callback finished execution", async () => {
             const event = new Event("my event", "my emitter");
             const action = new MyAction({ once: true }, async () => { });
 
@@ -154,7 +154,7 @@ describe("Action", () => {
             expect(action.state).equals(state);
         });
 
-        it("Calls removeFromParent() if state is removing", () => {
+        it("Calls this.removeFromParent() if state is removing", () => {
             const action = new MyAction(async () => { });
 
             action.fromJSON({ state: ActionState.Removing });

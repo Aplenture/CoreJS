@@ -96,7 +96,7 @@ export class Action extends Handler<any> {
      * Executes callback on one event when once is true.
      * Changes state from once to removing on execution.
      * Skips callback execution if state is removing.
-     * Calls removeFromParent() when state is once and callback finished execution.
+     * Calls this.removeFromParent() when state is once and callback finished execution.
      * It`s recommended to call super.handleEvent().
      */
     public async handleEvent(event: Event): Promise<void> {
@@ -129,7 +129,7 @@ export class Action extends Handler<any> {
 
     /** 
      * Parses Action state from object.
-     * Calls removeFromParent() if state is removing.
+     * Calls this.removeFromParent() if state is removing.
      * It`s recommended to call super.fromJSON().
      */
     public fromJSON(data: NodeJS.ReadOnlyDict<any>): void {

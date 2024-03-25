@@ -10,7 +10,7 @@ import { Controller, Event, Handler } from "../src";
 
 describe("Handler", () => {
     describe("handleEvent()", () => {
-        it("Calls execute() on event with matching name", () => {
+        it("Calls this.execute() on event with matching name", () => {
             const handler = new MyHandler("event");
 
             handler.handleEvent(new Event("event", "emitter", { value: 1 }));
@@ -19,7 +19,7 @@ describe("Handler", () => {
             expect(handler.value).equals(1);
         });
 
-        it("Calls execute() on every event when name is unset", () => {
+        it("Calls this.execute() on every event when name is unset", () => {
             const handler = new MyHandler();
 
             handler.handleEvent(new Event("event", "emitter", { value: 1 }));
@@ -28,7 +28,7 @@ describe("Handler", () => {
             expect(handler.value).equals(3);
         });
 
-        it("Calls execute() with the event argument", () => {
+        it("Calls this.execute() with the event argument", () => {
             const handler = new MyHandler();
             const event = new Event("event", "emitter", { value: 1 });
 

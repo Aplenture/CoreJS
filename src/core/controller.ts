@@ -13,24 +13,49 @@ import { Event } from "./event";
 import { Emitter } from "./emitter";
 
 /** 
- * Appends other handlers to propagate events to them.
+ * Handles events by appended Handler and Controller.
  */
 export class Controller<T extends Controller<T>> extends Emitter<T> {
     private _enabled = true;
     private eventHandlers: Array<Controller<any> | Handler<any>> = [];
 
+    /** 
+     * Handles events by appended Handler and Controller.
+     * @param name of Controller, concatinated with classes.
+     * @param classes optional prefixes of Controller name.
+     */
     constructor(name: string, ...classes: string[]) {
         super([name].concat(classes).join("/"));
     }
 
-    public get initialized() { return this.get<boolean>(EVENT_INIT); }
+    /**
+     * Calls this.get() with init event.
+     * @returns true when parent is initialized.
+     * @returns false when parent is not initialized.
+     * @returns false when parent is unset.
+     */
+    public get initialized(): boolean { return this.get(EVENT_INIT, false); }
 
-    public get debug() { return this.get<boolean>(EVENT_DEBUG); }
+    /**
+     * Calls this.get() with debug event.
+     * @returns true when parent is in debug mode.
+     * @returns false when parent is not in debug mode.
+     * @returns false when parent is unset.
+     */
+    public get debug(): boolean { return this.get(EVENT_DEBUG, false); }
+
+    /**
+     * Calls this.set() with debug event.
+     * Changes parents debug mode.
+     */
     public set debug(value) { this.set(EVENT_DEBUG, value); }
 
     /** 
-     * Enabled status of himself and all parents.
-     * Enables/disables event handling.
+     * Default is true.
+     * @returns false when Controller is disabled.
+     * @returns true when parent is enabled.
+     * @returns false when parent is disabled.
+     * @returns true when Controller is enabled and parent is unset.
      */
     public get enabled(): boolean {
         if (!this._enabled)
@@ -42,13 +67,22 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
         return true;
     }
 
+    /**
+     * Calls this.emit() with enabled changed event when parent is enabled.
+     * Calls this.emit() with enabled changed event when parent is unset.
+     * Skips calling this.emit() when parent is disabled.
+     * Calls this.onEnabled() on true when parent is enabled.
+     * Calls this.onEnabled() on true when parent is unset.
+     * Skips calling this.onEnabled() when parent is disabled.
+     * Calls this.onDisabled() on false when parent is enabled.
+     * Calls this.onDisabled() on false when parent is unset.
+     * Skips calling this.onDisabled() when parent is disabled.
+     * Skips all handling when value does not change current enabled state to avoid duplicate emits.
+     */
     public set enabled(value) {
-        // skip no changes
-        // to avoid useless emits
         if (this._enabled == value)
             return;
 
-        // when this and parents are enabled
         // emit before disabling
         // because emit catches on disabled
         // handlers will be emitted after changing enabled
@@ -58,14 +92,11 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
 
         this._enabled = value;
 
-        // when this and parents are enabled
         // emit after enabling
         // because emit catches on disabled
         if (value && this.enabled)
             this.emit(EVENT_ENABLED_CHANGED);
 
-        // call onEnabled() / onDisabled()
-        // only when parent is enabled or not set
         if (!this.parent || this.parent.enabled)
             if (value)
                 this.onEnabled();
@@ -74,8 +105,10 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
     }
 
     /**
-     * Returns whether value exists.
-     * @param key of the value
+     * Calls parent.has().
+     * @returns true if value is set in parent.
+     * @returns false if value is unset in parent.
+     * @returns false if parent is not set.
      */
     public has(key: string): boolean {
         if (this.parent)
@@ -85,11 +118,9 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
     }
 
     /**
-     * Returns value by key from parent if parent is set.
-     * Otherwise undefined is returned.
-     * @param key of value to return
-     * @param _default is returned when parent is not set
-     * @returns value or undefined
+     * Calls parent.get().
+     * @returns the value of parent.
+     * @returns _default if parent is not set.
      */
     public get<T>(key: string, _default?: T): T {
         if (this.parent)
@@ -99,21 +130,17 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
     }
 
     /**
-     * Sets a value by key from parent if parent is set.
-     * Otherwise nothing is done.
-     * @param key of value to set
-     * @param value of key to set
+     * Calls parent.set().
+     * Catches unset parent.
      */
-    public set(key: string, value: any) {
+    public set(key: string, value: any): void {
         if (this.parent)
             this.parent.set(key, value);
     }
 
     /**
-     * Appends child controllers and event handlers.
-     * First calls removeFromParent().
-     * Then changes the parent of a module to this.
-     * @param child
+     * Appends Controller and Handler for event handling.
+     * It`s recommended to call super.append().
      */
     public append(child: Module<Module<T>>): void {
         super.append(child);
@@ -125,64 +152,63 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
     }
 
     /**
-     * Depends a child controller or event handler.
-     * @param child
+     * Depends Controller and Handler of event handling.
+     * It`s recommended to call super.depend().
      */
     public depend(child: Module<Module<T>>): void {
         super.depend(child);
 
-        // find index from handler
         const handlerIndex = this.eventHandlers.indexOf(child as any);
 
-        // remove handler if appended
         if (-1 != handlerIndex)
             this.eventHandlers.splice(handlerIndex, 1);
     }
 
     /**
-     * Creates and appends an Action.
-     * @param event name, config or callback from Action
-     * @param callback from Action, not needed if event is callback already
+     * Creates an Action and appends it by calling append().
+     * Throws an Error on init event handlers because init event handlers should be appended by once().
      */
-    public on(event: string | ActionConfig | ActionCallback, callback?: ActionCallback) {
-        if (event == EVENT_INIT)
+    public on(event: string | ActionConfig | ActionCallback, callback?: ActionCallback): void {
+        const action = new Action(event, callback);
+
+        if (action.name == EVENT_INIT)
             throw new Error('use once for init event');
 
-        this.append(new Action(event, callback));
+        this.append(action);
     }
 
     /**
-     * Creates and appends an Action which is called only once.
-     * Ignores init event handler if already init.
-     * @param event name, config or callback from Action
-     * @param callback from Action, not needed if event is callback already
+     * Creates an Action that is called once and appends it by calling append().
+     * Skips init event handlers when Controller is aleready initialized.
      */
-    public once(event: string | ActionConfig | ActionCallback, callback?: ActionCallback) {
+    public once(event: string | ActionConfig | ActionCallback, callback?: ActionCallback): void {
+        let action: Action;
+
+        if (typeof event == "string")
+            action = new Action({ event, callback, once: true });
+        else if (event instanceof Function)
+            action = new Action({ callback: event, once: true });
+        else
+            action = new Action(Object.assign(event, { once: true }));
+
         if (event == EVENT_INIT && this.initialized)
             return;
 
-        if (typeof event == "string")
-            this.append(new Action({ event, callback, once: true }));
-        else if (event instanceof Function)
-            this.append(new Action({ callback: event, once: true }));
-        else
-            this.append(new Action(Object.assign(event, { once: true })));
+        this.append(action);
     }
 
     /**
-     * Depends all matching event handlers.
-     * Controllers are ignored.
-     * @param event optional options with event and emitter names or name of all removing event handler
+     * Removes all matching event handlers by calling depend().
+     * Skips Controller.
+     * Skips Handler with missmatching name if event argument is given.
      */
-    public off(event?: string) {
+    public off(event?: string): void {
         for (let i = this.eventHandlers.length - 1; i >= 0; --i) {
             const handler = this.eventHandlers[i];
 
-            // skip if handler is not an instance of Handler
             if (!(handler instanceof Handler))
                 continue;
 
-            // skip missmatching event name
             if (event != undefined && event != handler.name)
                 continue;
 
@@ -191,62 +217,60 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
     }
 
     /**
-     * Propagates events.
-     * If there is a parent, event is prpagated to it.
-     * Otherwise event is propagated to event handlers.
-     * Catches calls on disabled Controller.
-     * @param event name of event
-     * @param args of event
-     * @param emitter of event
-     * @returns Event
+     * If parent is set, calls parent.emit().
+     * If parent is not set, handles emitted event by all appended Handler and Controller.
+     * Throws an Error if enabled is false.
+     * Calls event.retain() before handling by appended Handler and Controller.
+     * Calls event.release() after handling is done.
+     * @returns handled Event
      */
-    public emit(event: string, args?: NodeJS.ReadOnlyDict<any>, emitter: string = this.name, timestamp?: number): Event {
-        // disabled Controllers may not propagate events
+    public emit(event: Event | string, args?: NodeJS.ReadOnlyDict<any>, emitter: string = this.name, timestamp?: number): Event {
         if (!this._enabled)
             throw new Error('controller is disabled');
 
-        // propagate to parent if set
         if (this.parent)
             return this.parent.emit(event, args, emitter, timestamp);
 
-        // otherwise propagate event to event handlers
-        const instance = new Event(event, emitter, args, timestamp);
+        const instance = typeof event == "string"
+            ? new Event(event, emitter, args, timestamp)
+            : event;
 
-        // retain event until event handling
         instance.retain();
 
         Promise.resolve()
-            // delay event handling until emitter has received the event instance
             .then(() => this.handleEvent(instance))
-            // release event after the handling
             .then(() => instance.release());
 
         return instance;
     }
 
+    /** 
+     * It`s recommended to call super.toJSON().
+     * @returns enabled state in Object.
+     * @returns eventHandlers as Object indexed by name in Object.
+     */
     public toJSON(): NodeJS.Dict<any> {
         const data = super.toJSON();
 
-        // serialize enabled
         data.enabled = this._enabled;
 
-        // serialize all event handlers by name
-        if (this.eventHandlers.length) {
-            data.eventHandlers = {};
-            this.eventHandlers.forEach(handler => data.eventHandlers[handler.name] = handler.toJSON());
-        }
+        data.eventHandlers = {};
+        this.eventHandlers.forEach(handler => data.eventHandlers[handler.name] = handler.toJSON());
 
         return data;
     }
 
+    /** 
+     * Parses enabled state if set.
+     * Parses eventHandlers if set.
+     * It`s recommended to call super.fromJSON().
+     */
     public fromJSON(data: NodeJS.ReadOnlyDict<any>): void {
         super.fromJSON(data);
 
-        // deserialize enabled
         if (data.enabled != undefined)
             this.enabled = data.enabled;
 
-        // deserialize all event handlers by name
         if (data.eventHandlers)
             this.eventHandlers.forEach(handler => data.eventHandlers[handler.name] && handler.fromJSON(data.eventHandlers[handler.name]));
     }
@@ -265,7 +289,8 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
 
     /**
      * Called when controller has been enabled.
-     * Calls onEnabled() on all event handlers.
+     * Calls onEnabled() on all appended Handler.
+     * Calls onEnabled() on all appended and enabled Controller.
      * It`s recommended to call super.onEnabled().
      */
     protected onEnabled() {
@@ -279,7 +304,8 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
 
     /**
      * Called when controller has been disabled.
-     * Calls onDisabled() on all event handlers.
+     * Calls onDisabled() on all appended Handler.
+     * Calls onDisabled() on all appended and enabled Controller.
      * It`s recommended to call super.onDisabled().
      */
     protected onDisabled() {
@@ -292,8 +318,8 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
     }
 
     /**
-     * Propagates an event to all event handlers.
-     * Skips on disabled.
+     * Calls handleEvent() on all appended Handler and Controller.
+     * Skips when enabled is false.
      */
     private handleEvent(event: Event) {
         if (!this._enabled)

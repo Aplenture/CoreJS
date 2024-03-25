@@ -80,7 +80,7 @@ export class Cache extends Serializable {
 
     /** 
      * Parses cache data from object.
-     * Calls set() for every key value pair in data.
+     * Calls this.set() for every key value pair in data.
      * It`s recommended to call super.fromJSON().
      */
     public fromJSON(data: NodeJS.ReadOnlyDict<any>): void {
