@@ -6,7 +6,7 @@
  */
 
 import { expect } from "chai";
-import { Controller, EVENT_DEBUG, EVENT_ENABLED_CHANGED, EVENT_INIT, Event } from "../src";
+import { Action, Controller, EVENT_DEBUG, EVENT_ENABLED_CHANGED, EVENT_INIT, Event, Module } from "../src";
 
 class MyController extends Controller<any> {
     public getKey: string;
@@ -15,6 +15,8 @@ class MyController extends Controller<any> {
     public emitEvent: Event | string;
     public onEnabledCalled = false;
     public onDisabledCalled = false;
+    public appended: any;
+    public depended: any;
 
     public has(key: string): boolean {
         this.hasKey = key;
@@ -34,6 +36,16 @@ class MyController extends Controller<any> {
     public emit(event: string | Event, args?: NodeJS.ReadOnlyDict<any> | undefined, emitter?: string, timestamp?: number | undefined): Event {
         this.emitEvent = event;
         return super.emit(event, args, emitter, timestamp);
+    }
+
+    public append(child: Module<Module<any>>): void {
+        this.appended = child;
+        super.append(child);
+    }
+
+    public depend(child: Module<Module<any>>): void {
+        this.depended = child;
+        super.depend(child);
     }
 
     protected onEnabled(): void {
@@ -445,6 +457,171 @@ describe.only("Controller", () => {
             const controller = new MyController("controller");
 
             expect(controller.set("hello", "world")).is.undefined;
+        });
+    });
+
+    describe("append", () => {
+        it("Appends Controller and Handler for event handling", done => {
+            const parent = new MyController("parent");
+            const child = new MyController("child");
+            const emitted = "hello world";
+
+            let parentEvent: string;
+            let childEvent: string;
+
+            child.append(new Action(async a => childEvent = a.name));
+
+            parent.append(new Action(async a => parentEvent = a.name));
+            parent.append(child);
+            parent.emit(emitted);
+
+            Promise.resolve()
+                .then(() => expect(parentEvent).equals(emitted, "parent"))
+                .then(() => expect(childEvent).equals(emitted, "child"))
+                .then(() => done())
+                .catch(done);
+        });
+
+        it("It`s recommended to call super.append()", () => {
+            const parent = new MyController("parent");
+            const child = new MyController("child");
+
+            parent.append(child);
+
+            expect(child.parent).equals(parent);
+        });
+    });
+
+    describe("depend", () => {
+        it("Depends Controller and Handler of event handling", done => {
+            const parent = new MyController("parent");
+            const child = new MyController("child");
+            const emitted = "hello world";
+            const action = new Action(async a => parentEvent = a.name);
+
+            let parentEvent: string;
+            let childEvent: string;
+
+            child.append(new Action(async a => childEvent = a.name));
+
+            parent.append(action);
+            parent.depend(action);
+
+            parent.append(child);
+            parent.depend(child);
+
+            parent.emit(emitted);
+
+            Promise.resolve()
+                .then(() => expect(parentEvent, "parent").is.undefined)
+                .then(() => expect(childEvent, "child").is.undefined)
+                .then(() => done())
+                .catch(done);
+        });
+
+        it("It`s recommended to call super.depend()", () => {
+            const parent = new MyController("parent");
+            const child = new MyController("child");
+
+            expect(() => parent.depend(child)).throws("parent is not this");
+        });
+    });
+
+    describe("on", () => {
+        it("Appends an Action by this.append()", () => {
+            const controller = new MyController("controller");
+            const event = "my event";
+            const emitter = "my emitter";
+            const once = true;
+            const callback = async () => { };
+
+            controller.on({ event, emitter, once, callback });
+
+            expect(controller.appended.name, "event").equals(event);
+            expect(controller.appended.emitter, "emitter").equals(emitter);
+            expect(controller.appended.once, "once").equals(once);
+            expect(controller.appended.execute, "callback").equals(callback);
+        });
+
+        it("Throws an Error on init event handlers because init event handlers should be appended by once()", () => {
+            const controller = new MyController("controller");
+
+            expect(() => controller.on(EVENT_INIT, async () => { })).throws("use once for init event");
+        });
+    });
+
+    describe("once", () => {
+        it("Appends an Action that is called once by this.append()", () => {
+            const controller = new MyController("controller");
+            const event = "my event";
+            const emitter = "my emitter";
+            const callback = async () => { };
+
+            controller.once({ event, emitter, once: false, callback });
+
+            expect(controller.appended.name, "event").equals(event);
+            expect(controller.appended.emitter, "emitter").equals(emitter);
+            expect(controller.appended.once, "once").equals(true);
+            expect(controller.appended.execute, "callback").equals(callback);
+        });
+
+        it("Ignores init event handlers when Controller is aleready initialized", () => {
+            const controller = new Parent("controller");
+
+            controller.initialized = true;
+            controller.once(EVENT_INIT, async () => {});
+
+            expect(controller.appended).is.undefined;
+        });
+    });
+
+    describe("off", () => {
+        it("Depends all event handlers with specific event name by calling depend()", () => {
+            const controller = new MyController("controller");
+            const event = "my event";
+            const namedAction = new Action(event, async () => { });
+            const unnamedAction = new Action(async () => { });
+
+            controller.append(namedAction);
+            controller.append(unnamedAction);
+            controller.off(event);
+
+            expect(namedAction.parent, "named action").is.null;
+            expect(unnamedAction.parent, "unnamed action").equals(controller);
+        });
+
+        it("Depends all event handlers if event argument is not given", () => {
+            const controller = new MyController("controller");
+            const event = "my event";
+            const namedAction = new Action(event, async () => { });
+            const unnamedAction = new Action(async () => { });
+
+            controller.append(namedAction);
+            controller.append(unnamedAction);
+            controller.off();
+
+            expect(namedAction.parent, "named action").is.null;
+            expect(unnamedAction.parent, "unnamed action").is.null;
+        });
+
+        it("Calls this.depend()", () => {
+            const controller = new MyController("controller");
+            const action = new Action(async () => { });
+
+            controller.append(action);
+            controller.off();
+
+            expect(controller.depended).equals(action);
+        });
+
+        it("Ignores appended Controller", () => {
+            const parent = new MyController("parent");
+            const child = new MyController("child");
+
+            parent.append(child);
+            parent.off();
+
+            expect(child.parent).equals(parent);
         });
     });
 });

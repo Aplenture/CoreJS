@@ -165,7 +165,7 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
     }
 
     /**
-     * Creates an Action and appends it by calling append().
+     * Appends an Action by this.append().
      * Throws an Error on init event handlers because init event handlers should be appended by once().
      */
     public on(event: string | ActionConfig | ActionCallback, callback?: ActionCallback): void {
@@ -178,8 +178,8 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
     }
 
     /**
-     * Creates an Action that is called once and appends it by calling append().
-     * Skips init event handlers when Controller is aleready initialized.
+     * Appends an Action that is called once by this.append().
+     * Ignores init event handlers when Controller is aleready initialized.
      */
     public once(event: string | ActionConfig | ActionCallback, callback?: ActionCallback): void {
         let action: Action;
@@ -198,9 +198,10 @@ export class Controller<T extends Controller<T>> extends Emitter<T> {
     }
 
     /**
-     * Removes all matching event handlers by calling depend().
-     * Skips Controller.
-     * Skips Handler with missmatching name if event argument is given.
+     * Depends all event handlers with specific event name.
+     * Depends all event handlers if event argument is not given.
+     * Calls this.depend().
+     * Ignores appended Controller.
      */
     public off(event?: string): void {
         for (let i = this.eventHandlers.length - 1; i >= 0; --i) {
