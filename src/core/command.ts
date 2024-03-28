@@ -19,9 +19,9 @@ export abstract class Command<T extends Controller<T>> extends Handler<T> {
 
     public async handleEvent(event: Event): Promise<void> {
         if ((event.name == "help") ||
-            (event.name == this.name && event.args.help)) {
+            (event.name == this.event && event.args.help)) {
             event.invoke({
-                name: this.name,
+                name: this.event,
                 description: this.description,
                 parameters: this.parameters
             });

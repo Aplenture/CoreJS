@@ -8,85 +8,6 @@
 import { expect } from "chai";
 import { Action, Controller, EVENT_DEBUG, EVENT_ENABLED_CHANGED, EVENT_INIT, Event, Module } from "../src";
 
-class MyController extends Controller<any> {
-    public getKey: string;
-    public setKey: string;
-    public hasKey: string;
-    public emitEvent: Event | string;
-    public onEnabledCalled = false;
-    public onDisabledCalled = false;
-    public appended: any;
-    public depended: any;
-
-    public has(key: string): boolean {
-        this.hasKey = key;
-        return super.has(key);
-    }
-
-    public get<T>(key: string, _default?: T | undefined): T {
-        this.getKey = key;
-        return super.get(key, _default);
-    }
-
-    public set(key: string, value: any): void {
-        this.setKey = key;
-        super.set(key, value);
-    }
-
-    public emit(event: string | Event, args?: NodeJS.ReadOnlyDict<any> | undefined, emitter?: string, timestamp?: number | undefined): Event {
-        this.emitEvent = event;
-        return super.emit(event, args, emitter, timestamp);
-    }
-
-    public append(child: Module<Module<any>>): void {
-        this.appended = child;
-        super.append(child);
-    }
-
-    public depend(child: Module<Module<any>>): void {
-        this.depended = child;
-        super.depend(child);
-    }
-
-    protected onEnabled(): void {
-        this.onEnabledCalled = true;
-        super.onEnabled();
-    }
-
-    protected onDisabled(): void {
-        this.onDisabledCalled = true;
-        super.onDisabled();
-    }
-}
-
-class Parent extends MyController {
-    private values = {
-        init: false,
-        debug: false
-    }
-
-    public get initialized() { return super.initialized; }
-    public set initialized(value) { this.values.init = value; }
-
-    public get debug() { return super.debug; }
-    public set debug(value) { this.values.debug = value; }
-
-    public get<T>(key: string, _default?: T | undefined): T {
-        super.get(key, _default);
-        return this.values[key];
-    }
-
-    public set(key: string, value: any): void {
-        super.set(key, value);
-        this.values[key] = value;
-    }
-
-    public has(key: string): boolean {
-        super.has(key);
-        return this.values[key] !== undefined;
-    }
-}
-
 describe.only("Controller", () => {
     describe("constructor()", () => {
         it("Param name of Controller, concatinated with classes", () => {
@@ -369,7 +290,7 @@ describe.only("Controller", () => {
         });
     });
 
-    describe("has", () => {
+    describe("has()", () => {
         it("Calls parent.has()", () => {
             const controller = new MyController("controller");
             const parent = new Parent("parent");
@@ -406,7 +327,7 @@ describe.only("Controller", () => {
         });
     });
 
-    describe("get", () => {
+    describe("get()", () => {
         it("Calls parent.get()", () => {
             const controller = new MyController("controller");
             const parent = new Parent("parent");
@@ -435,7 +356,7 @@ describe.only("Controller", () => {
         });
     });
 
-    describe("set", () => {
+    describe("set()", () => {
         it("Calls parent.set()", () => {
             const controller = new MyController("controller");
             const parent = new Parent("parent");
@@ -460,26 +381,31 @@ describe.only("Controller", () => {
         });
     });
 
-    describe("append", () => {
-        it("Appends Controller and Handler for event handling", done => {
+    describe("append()", () => {
+        it("Appends Controller", () => {
             const parent = new MyController("parent");
             const child = new MyController("child");
-            const emitted = "hello world";
 
-            let parentEvent: string;
-            let childEvent: string;
+            expect(parent.children).has.length(0);
 
-            child.append(new Action(async a => childEvent = a.name));
-
-            parent.append(new Action(async a => parentEvent = a.name));
             parent.append(child);
-            parent.emit(emitted);
 
-            Promise.resolve()
-                .then(() => expect(parentEvent).equals(emitted, "parent"))
-                .then(() => expect(childEvent).equals(emitted, "child"))
-                .then(() => done())
-                .catch(done);
+            expect(parent.handlers).has.length(0);
+            expect(parent.children).has.length(1);
+            expect(parent.children).contains(child);
+        });
+
+        it("Appends Handler", () => {
+            const parent = new MyController("parent");
+            const handler = new Action(async () => { });
+
+            expect(parent.handlers).has.length(0);
+
+            parent.append(handler);
+
+            expect(parent.children).has.length(0);
+            expect(parent.handlers).has.length(1);
+            expect(parent.handlers).contains(handler);
         });
 
         it("It`s recommended to call super.append()", () => {
@@ -492,31 +418,25 @@ describe.only("Controller", () => {
         });
     });
 
-    describe("depend", () => {
-        it("Depends Controller and Handler of event handling", done => {
+    describe("depend()", () => {
+        it("Depends Controller", () => {
             const parent = new MyController("parent");
             const child = new MyController("child");
-            const emitted = "hello world";
-            const action = new Action(async a => parentEvent = a.name);
-
-            let parentEvent: string;
-            let childEvent: string;
-
-            child.append(new Action(async a => childEvent = a.name));
-
-            parent.append(action);
-            parent.depend(action);
 
             parent.append(child);
             parent.depend(child);
 
-            parent.emit(emitted);
+            expect(parent.children).has.length(0);
+        });
 
-            Promise.resolve()
-                .then(() => expect(parentEvent, "parent").is.undefined)
-                .then(() => expect(childEvent, "child").is.undefined)
-                .then(() => done())
-                .catch(done);
+        it("Depends Handler", () => {
+            const parent = new MyController("parent");
+            const handler = new Action(async () => { });
+
+            parent.append(handler);
+            parent.depend(handler);
+
+            expect(parent.handlers).has.length(0);
         });
 
         it("It`s recommended to call super.depend()", () => {
@@ -527,56 +447,55 @@ describe.only("Controller", () => {
         });
     });
 
-    describe("on", () => {
+    describe("on()", () => {
         it("Appends an Action by this.append()", () => {
             const controller = new MyController("controller");
             const event = "my event";
             const emitter = "my emitter";
-            const once = true;
             const callback = async () => { };
 
-            controller.on({ event, emitter, once, callback });
+            controller.on(event, emitter, callback);
 
-            expect(controller.appended.name, "event").equals(event);
+            expect(controller.appended.event, "event").equals(event);
             expect(controller.appended.emitter, "emitter").equals(emitter);
-            expect(controller.appended.once, "once").equals(once);
+            expect(controller.appended.once, "once").equals(false);
             expect(controller.appended.execute, "callback").equals(callback);
         });
 
-        it("Throws an Error on init event handlers because init event handlers should be appended by once()", () => {
+        it("Throws an Error on init event Handler because init event Handler should be appended by once()", () => {
             const controller = new MyController("controller");
 
-            expect(() => controller.on(EVENT_INIT, async () => { })).throws("use once for init event");
+            expect(() => controller.on(EVENT_INIT, async () => { })).throws("use once() instead to append init event Handler");
         });
     });
 
-    describe("once", () => {
-        it("Appends an Action that is called once by this.append()", () => {
+    describe("once()", () => {
+        it("Appends an once called Action by this.append()", () => {
             const controller = new MyController("controller");
             const event = "my event";
             const emitter = "my emitter";
             const callback = async () => { };
 
-            controller.once({ event, emitter, once: false, callback });
+            controller.once(event, emitter, callback);
 
-            expect(controller.appended.name, "event").equals(event);
+            expect(controller.appended.event, "event").equals(event);
             expect(controller.appended.emitter, "emitter").equals(emitter);
             expect(controller.appended.once, "once").equals(true);
             expect(controller.appended.execute, "callback").equals(callback);
         });
 
-        it("Ignores init event handlers when Controller is aleready initialized", () => {
+        it("Ignores init event handlers when Controller is already initialized", () => {
             const controller = new Parent("controller");
 
             controller.initialized = true;
-            controller.once(EVENT_INIT, async () => {});
+            controller.once(EVENT_INIT, async () => { });
 
             expect(controller.appended).is.undefined;
         });
     });
 
-    describe("off", () => {
-        it("Depends all event handlers with specific event name by calling depend()", () => {
+    describe("off()", () => {
+        it("Depends all event Handler with specific event name", () => {
             const controller = new MyController("controller");
             const event = "my event";
             const namedAction = new Action(event, async () => { });
@@ -590,7 +509,7 @@ describe.only("Controller", () => {
             expect(unnamedAction.parent, "unnamed action").equals(controller);
         });
 
-        it("Depends all event handlers if event argument is not given", () => {
+        it("Depends all event Handler if event argument is not given", () => {
             const controller = new MyController("controller");
             const event = "my event";
             const namedAction = new Action(event, async () => { });
@@ -624,4 +543,217 @@ describe.only("Controller", () => {
             expect(child.parent).equals(parent);
         });
     });
+
+    describe("emit()", () => {
+        it("Calls parent.emit() if parent is set", () => {
+            const controller = new MyController("controller");
+            const parent = new Parent("parent");
+            const event = "hello world";
+
+            parent.append(controller);
+            controller.emit(event);
+
+            expect(parent.emitEvent).equals(event);
+        });
+
+        it("Handles emitted event by all appended Handler and Controller if parent is not set", done => {
+            const parent = new MyController("parent");
+            const child = new MyController("child");
+            const emitted = "hello world";
+
+            let parentEvent: string;
+            let childEvent: string;
+
+            child.append(new Action(async a => childEvent = a.name));
+
+            parent.append(new Action(async a => parentEvent = a.name));
+            parent.append(child);
+            parent.emit(emitted);
+
+            Promise.resolve()
+                .then(() => expect(parentEvent).equals(emitted, "parent"))
+                .then(() => expect(childEvent).equals(emitted, "child"))
+                .then(() => done())
+                .catch(done);
+        });
+
+        it("Throws an Error if enabled is false", () => {
+            const controller = new MyController("controller");
+
+            controller.enabled = false;
+
+            expect(() => controller.emit("hello world")).throws("controller is disabled");
+        });
+
+        it("Handles event by Promise, after returning Event", done => {
+            const controller = new MyController("controller");
+
+            let handled = false;
+
+            controller.on(async () => handled = true);
+            controller.emit("hello world");
+
+            expect(handled).is.false;
+
+            Promise.resolve()
+                .then(() => expect(handled).is.true)
+                .then(() => done())
+                .catch(done);
+        });
+
+        it("Calls event.retain() before handling by appended Handler and Controller", () => {
+            const controller = new MyController("controller");
+
+            controller.on(async () => expect(event.finished).is.false);
+
+            const event = controller.emit("hello world");
+
+            expect(event.finished).is.false;
+        });
+
+        it("Calls event.release() after handling is done", done => {
+            const controller = new MyController("controller");
+
+            let handled = false;
+
+            controller.on(async () => handled = true);
+
+            const event = controller.emit("hello world");
+
+            event
+                .then(() => expect(handled).is.true)
+                .then(() => expect(event.finished).is.true)
+                .then(() => done())
+                .catch(done);
+        });
+
+        it("Returns handled Event", () => {
+            const controller = new MyController("controller");
+
+            expect(controller.emit("hello world")).instanceOf(Event);
+        });
+    });
+
+    describe("toJSON()", () => {
+        it("Returns Object with name", () => {
+            const controller = new MyController("my controller");
+
+            expect(controller.toJSON()).contains({ name: controller.name });
+        });
+
+        it("Returns Object with enabled state", () => {
+            const controller = new MyController("controller");
+
+            expect(controller.toJSON()).contains({ enabled: true });
+
+            controller.enabled = false;
+
+            expect(controller.toJSON()).contains({ enabled: false });
+        });
+
+        it("Returns Object with children mapped by toJSON()", () => {
+            const controller = new MyController("controller");
+            const child = new MyController("child");
+
+            controller.append(child);
+
+            const children = controller.toJSON().children;
+
+            expect(children, "children").is.an("Array");
+            expect(children, "children").has.length(1);
+            expect(children[0], "children[0]").deep.equals(child.toJSON());
+        });
+
+        it("Returns Object with handlers mapped by toJSON()", () => {
+            const controller = new MyController("controller");
+            const action = new Action(async () => { });
+
+            controller.append(action);
+
+            const handlers = controller.toJSON().handlers;
+
+            expect(handlers, "handlers").is.an("Array");
+            expect(handlers, "handlers").has.length(1);
+            expect(handlers[0], "handlers[0]").deep.equals(action.toJSON());
+        });
+    });
 });
+
+class MyController extends Controller<any> {
+    public getKey: string;
+    public setKey: string;
+    public hasKey: string;
+    public emitEvent: Event | string;
+    public onEnabledCalled = false;
+    public onDisabledCalled = false;
+    public appended: any;
+    public depended: any;
+
+    public has(key: string): boolean {
+        this.hasKey = key;
+        return super.has(key);
+    }
+
+    public get<T>(key: string, _default?: T | undefined): T {
+        this.getKey = key;
+        return super.get(key, _default);
+    }
+
+    public set(key: string, value: any): void {
+        this.setKey = key;
+        super.set(key, value);
+    }
+
+    public emit(event: string | Event, args?: NodeJS.ReadOnlyDict<any> | undefined, emitter?: string): Event {
+        this.emitEvent = event;
+        return super.emit(event, args, emitter);
+    }
+
+    public append(child: Module<Module<any>>): void {
+        this.appended = child;
+        super.append(child);
+    }
+
+    public depend(child: Module<Module<any>>): void {
+        this.depended = child;
+        super.depend(child);
+    }
+
+    protected onEnabled(): void {
+        this.onEnabledCalled = true;
+        super.onEnabled();
+    }
+
+    protected onDisabled(): void {
+        this.onDisabledCalled = true;
+        super.onDisabled();
+    }
+}
+
+class Parent extends MyController {
+    private values = {
+        init: false,
+        debug: false
+    }
+
+    public get initialized() { return super.initialized; }
+    public set initialized(value) { this.values.init = value; }
+
+    public get debug() { return super.debug; }
+    public set debug(value) { this.values.debug = value; }
+
+    public get<T>(key: string, _default?: T | undefined): T {
+        super.get(key, _default);
+        return this.values[key];
+    }
+
+    public set(key: string, value: any): void {
+        super.set(key, value);
+        this.values[key] = value;
+    }
+
+    public has(key: string): boolean {
+        super.has(key);
+        return this.values[key] !== undefined;
+    }
+}

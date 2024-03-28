@@ -11,8 +11,8 @@ import { Module } from "../src";
 describe("Module", () => {
     describe("append()", () => {
         it("Sets parent of child to this", () => {
-            const parent = new MyModule("parent");
-            const child = new MyModule("child");
+            const parent = new MyModule();
+            const child = new MyModule();
 
             parent.append(child);
 
@@ -20,8 +20,8 @@ describe("Module", () => {
         });
 
         it("Throws an Error when parent is already this", () => {
-            const parent = new MyModule("parent");
-            const child = new MyModule("child");
+            const parent = new MyModule();
+            const child = new MyModule();
 
             parent.append(child);
 
@@ -29,8 +29,8 @@ describe("Module", () => {
         });
 
         it("Calls child.removeFromParent() before setting parent", () => {
-            const parent = new MyModule("parent");
-            const child = new MyModule("child");
+            const parent = new MyModule();
+            const child = new MyModule();
 
             parent.append(child);
 
@@ -39,8 +39,8 @@ describe("Module", () => {
         });
 
         it("Calls child.onAppended() after setting parent", () => {
-            const parent = new MyModule("parent");
-            const child = new MyModule("child");
+            const parent = new MyModule();
+            const child = new MyModule();
 
             parent.append(child);
 
@@ -49,8 +49,8 @@ describe("Module", () => {
         });
 
         it("Returns void", () => {
-            const parent = new MyModule("parent");
-            const child = new MyModule("child");
+            const parent = new MyModule();
+            const child = new MyModule();
 
             expect(parent.append(child)).is.undefined;
         });
@@ -58,8 +58,8 @@ describe("Module", () => {
 
     describe("depend()", () => {
         it("Unsets parent of child to null", () => {
-            const parent = new MyModule("parent");
-            const child = new MyModule("child");
+            const parent = new MyModule();
+            const child = new MyModule();
 
             parent.append(child);
             parent.depend(child);
@@ -68,15 +68,15 @@ describe("Module", () => {
         });
 
         it("Throws an Error when parent is not this", () => {
-            const parent = new MyModule("parent");
-            const child = new MyModule("child");
+            const parent = new MyModule();
+            const child = new MyModule();
 
             expect(() => parent.depend(child)).throws("parent is not this");
         });
 
         it("Calls child.onDepended() after setting parent", () => {
-            const parent = new MyModule("parent");
-            const child = new MyModule("child");
+            const parent = new MyModule();
+            const child = new MyModule();
 
             parent.append(child);
             parent.depend(child);
@@ -86,8 +86,8 @@ describe("Module", () => {
         });
 
         it("Returns void", () => {
-            const parent = new MyModule("parent");
-            const child = new MyModule("child");
+            const parent = new MyModule();
+            const child = new MyModule();
 
             parent.append(child);
 
@@ -97,8 +97,8 @@ describe("Module", () => {
 
     describe("removeFromParent()", () => {
         it("Calls parent.depend()", () => {
-            const parent = new MyModule("parent");
-            const child = new MyModule("child");
+            const parent = new MyModule();
+            const child = new MyModule();
 
             parent.append(child);
             child.removeFromParent();
@@ -108,14 +108,14 @@ describe("Module", () => {
         });
 
         it("Catches when parent is not set", () => {
-            const child = new MyModule("child");
+            const child = new MyModule();
 
             expect(() => child.removeFromParent()).not.throw();
         });
 
         it("Returns void", () => {
-            const parent = new MyModule("parent");
-            const child = new MyModule("child");
+            const parent = new MyModule();
+            const child = new MyModule();
 
             parent.append(child);
 
@@ -125,7 +125,15 @@ describe("Module", () => {
 
     describe("onAppended()", () => {
         it("Returns void", () => {
-            const module = new MyModule("module");
+            const module = new MyModule();
+
+            expect(module.onAppended()).is.undefined;
+        });
+    });
+
+    describe("onAppended()", () => {
+        it("Returns void", () => {
+            const module = new MyModule();
 
             expect(module.onAppended()).is.undefined;
         });
@@ -133,7 +141,7 @@ describe("Module", () => {
 
     describe("onDepended()", () => {
         it("Returns void", () => {
-            const module = new MyModule("module");
+            const module = new MyModule();
 
             expect(module.onDepended()).is.undefined;
         });

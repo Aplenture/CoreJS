@@ -11,52 +11,45 @@ import { Emitter, Event } from "../src";
 describe("Emitter", () => {
     describe("emit()", () => {
         it("Calls parent.emit()", () => {
-            const parent = new Parent("parent");
-            const child = new Emitter("child");
-
-            parent.append(child);
-            child.emit("test");
-
-            expect(parent.emitCalled).is.true;
-        });
-
-        it("Calls parent.emit() with the args", () => {
-            const parent = new Parent("parent");
-            const child = new Emitter("child");
+            const parent = new Parent();
+            const child = new Emitter();
             const event = "my event";
             const args = { hello: "world" };
             const emitter = "my emitter";
-            const timestamp = Date.now() - 1000 * 60;
 
             parent.append(child);
-            child.emit(event, args, emitter, timestamp);
+            child.emit(event, args, emitter);
 
             expect(parent.event).equals(event);
             expect(parent.args).equals(args);
             expect(parent.emitter).equals(emitter);
-            expect(parent.timestamp).equals(timestamp);
         });
 
         it("Catches unset parent", () => {
-            const emitter = new Emitter("emitter");
+            const emitter = new Emitter();
 
             expect(() => emitter.emit("test")).not.throw();
         });
 
-        it("Param event name", () => {
-            const parent = new Parent("parent");
-            const child = new Emitter("child");
-            const event = "test";
+        it("Param event name or instance of event", () => {
+            const parent = new Parent();
+            const child = new Emitter();
+            const eventName = "name test";
+            const event = new Event("event test", "");
 
             parent.append(child);
+            child.emit(eventName);
+
+            expect(parent.event).equals(eventName);
+
             child.emit(event);
 
             expect(parent.event).equals(event);
         });
 
-        it("Param args default is undefined", () => {
-            const parent = new Parent("parent");
-            const child = new Emitter("child");
+        it("Param args optional arguments of event", () => {
+            const parent = new Parent();
+            const child = new Emitter();
 
             parent.append(child);
             child.emit("test");
@@ -64,29 +57,19 @@ describe("Emitter", () => {
             expect(parent.args).is.undefined;
         });
 
-        it("Param emitter name, default is this", () => {
-            const parent = new Parent("parent");
-            const child = new Emitter("child");
+        it("Param emitter optional name of event emitter", () => {
+            const parent = new Parent();
+            const child = new Emitter();
 
             parent.append(child);
             child.emit("test");
 
-            expect(parent.emitter).equals(child.name);
+            expect(parent.emitter).is.undefined;
         });
 
-        it("Param timestamp default is undefined", () => {
-            const parent = new Parent("parent");
-            const child = new Emitter("child");
-
-            parent.append(child);
-            child.emit("test");
-
-            expect(parent.timestamp).is.undefined;
-        });
-
-        it("Returns an Event by parent when parent is set", () => {
-            const parent = new Parent("parent");
-            const child = new Emitter("child");
+        it("Returns an Event of parent when parent is set", () => {
+            const parent = new Parent();
+            const child = new Emitter();
 
             parent.append(child);
 
@@ -94,7 +77,7 @@ describe("Emitter", () => {
         });
 
         it("Returns undefined when parent is unset", () => {
-            const emitter = new Emitter("emitter");
+            const emitter = new Emitter();
 
             expect(emitter.emit("test")).is.undefined;
         });
@@ -106,15 +89,16 @@ class Parent extends Emitter<any> {
     public event;
     public args;
     public emitter;
-    public timestamp;
 
-    public emit(event: string, args, emitter, timestamp): Event {
+    public emit(event: Event | string, args, emitter: string): Event {
         this.emitCalled = true;
         this.event = event;
         this.args = args;
         this.emitter = emitter;
-        this.timestamp = timestamp;
 
-        return new Event(event, "");
+        if (event instanceof Event)
+            return event;
+
+        return new Event(event, emitter, args);
     }
 }

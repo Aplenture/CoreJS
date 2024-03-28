@@ -24,7 +24,41 @@ describe("Action", () => {
     describe("constructor()", () => {
         it("Throws an Error if callback is not given", () => {
             expect(() => new Action("test")).throws("invalid callback function");
-            expect(() => new Action("test", "test" as any)).throws("invalid callback function");
+            expect(() => new Action(async () => { })).not.throws();
+        });
+
+        it("Param event name or once flag or callback of event", () => {
+            const event = "my event";
+            const once = true;
+            const callback = async () => { };
+
+            expect(new Action(event, callback).event).equals(event);
+            expect(new Action(once, callback).once).equals(once);
+            expect(new Action(callback)["execute"]).equals(callback);
+        });
+
+        it("Param emitter name or once flag or callback of event", () => {
+            const emitter = "my emitter";
+            const once = true;
+            const callback = async () => { };
+
+            expect(new Action("event", emitter, callback).emitter).equals(emitter);
+            expect(new Action("event", once, callback).once).equals(once);
+            expect(new Action("event", callback)["execute"]).equals(callback);
+        });
+
+        it("Param once flag or callback of event", () => {
+            const once = true;
+            const callback = async () => { };
+
+            expect(new Action("event", "emitter", once, callback).once).equals(once);
+            expect(new Action("event", "emitter", callback)["execute"]).equals(callback);
+        });
+
+        it("Param callback of event", () => {
+            const callback = async () => { };
+
+            expect(new Action("event", "emitter", true, callback)["execute"]).equals(callback);
         });
     });
 
@@ -55,7 +89,7 @@ describe("Action", () => {
 
         it("Executes callback on event with matching emitter", () => {
             const event = new Event("my event", "my emitter");
-            const action = new Action({ emitter: event.emitter }, async () => counter += 1);
+            const action = new Action(null, event.emitter, async () => counter += 1);
 
             let counter = 0;
 
@@ -79,7 +113,7 @@ describe("Action", () => {
 
         it("Executes callback on one event when once is true", () => {
             const event = new Event("my event", "my emitter");
-            const action = new Action({ once: true }, async () => counter += 1);
+            const action = new Action(null, true, async () => counter += 1);
 
             let counter = 0;
 
@@ -91,7 +125,7 @@ describe("Action", () => {
 
         it("Changes state from once to removing on execution", () => {
             const event = new Event("my event", "my emitter");
-            const action = new Action({ once: true }, async () => { });
+            const action = new Action(null, true, async () => { });
 
             expect(action.state).equals(ActionState.Once);
 
@@ -114,7 +148,7 @@ describe("Action", () => {
 
         it("Calls this.removeFromParent() when state is once and callback finished execution", async () => {
             const event = new Event("my event", "my emitter");
-            const action = new MyAction({ once: true }, async () => { });
+            const action = new MyAction(null, true, async () => { });
 
             await action.handleEvent(event);
 
@@ -138,7 +172,7 @@ describe("Action", () => {
     describe("toJSON()", () => {
         it("Returns object with state of Action", () => {
             expect(new MyAction(async () => { }).toJSON().state).equals(ActionState.Infinite);
-            expect(new MyAction({ once: true }, async () => { }).toJSON().state).equals(ActionState.Once);
+            expect(new MyAction(null, true, async () => { }).toJSON().state).equals(ActionState.Once);
         });
     });
 
@@ -149,7 +183,7 @@ describe("Action", () => {
 
             expect(action.state).equals(ActionState.Infinite);
 
-            action.fromJSON({ state });
+            action.fromJSON({ event: null, state });
 
             expect(action.state).equals(state);
         });
@@ -157,7 +191,7 @@ describe("Action", () => {
         it("Calls this.removeFromParent() if state is removing", () => {
             const action = new MyAction(async () => { });
 
-            action.fromJSON({ state: ActionState.Removing });
+            action.fromJSON({ event: null, state: ActionState.Removing });
 
             expect(action.removeFromParentCalled).is.true;
         });
@@ -165,7 +199,7 @@ describe("Action", () => {
         it("Returns undefined", () => {
             const action = new MyAction(async () => { });
 
-            expect(action.fromJSON({ state: ActionState.Removing })).is.undefined;
+            expect(action.fromJSON({ event: null, state: ActionState.Removing })).is.undefined;
         });
     });
 });

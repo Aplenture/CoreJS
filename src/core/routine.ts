@@ -8,9 +8,10 @@
 import { EVENT_INIT, EVENT_START, EVENT_STOP } from "../constants";
 import { ActionCallback } from "./action";
 import { Controller } from "./controller";
+import { Event } from "./event";
 
 export class Routine extends Controller<Controller<any>> {
-    constructor(name: string, ...classes: string[]) {
+    constructor(public readonly event: string, name: string, ...classes: string[]) {
         super(name, ...classes, "routine");
     }
 
@@ -20,23 +21,25 @@ export class Routine extends Controller<Controller<any>> {
         if (!(callback instanceof Function))
             throw new Error('callback is not a function');
 
-        super.on(this.name, callback);
+        super.on(this.event, callback);
     }
 
     public once(callback: ActionCallback): void {
         if (!(callback instanceof Function))
             throw new Error('callback is not a function');
 
-        super.once(this.name, callback);
+        super.once(this.event, callback);
     }
 
     public start(time = Date.now()) {
         if (this.running)
             return;
 
+        // call it on start
         this.emit(EVENT_START);
 
-        this.emit(this.name, this, this.name, time);
+        // call it in update loop
+        this.emit(new Event(this.event, this.name, this, time));
 
         throw new Error('method not implemented');
     }

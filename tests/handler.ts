@@ -9,6 +9,17 @@ import { expect } from "chai";
 import { Controller, Event, Handler } from "../src";
 
 describe("Handler", () => {
+    describe("emit()", () => {
+        it("Calls parent.emit() with parent as emitter", () => {
+            const controller = new Controller("my controller");
+            const handler = new MyHandler();
+
+            controller.append(handler);
+
+            expect(handler.emit("my event").emitter).equals(controller.name);
+        });
+    });
+
     describe("handleEvent()", () => {
         it("Calls this.execute() on event with matching name", () => {
             const handler = new MyHandler("event");
@@ -34,7 +45,7 @@ describe("Handler", () => {
 
             handler.handleEvent(event);
 
-            expect(handler.event).equals(event);
+            expect(handler.executedEvent).equals(event);
         });
 
         it("Calls event.retain() before execute()", () => {
@@ -83,14 +94,39 @@ describe("Handler", () => {
             expect(handler.onDisabled()).is.undefined;
         });
     });
+
+    describe("toJSON()", () => {
+        it("Returns Object with event name", () => {
+            const event = "my event";
+            const handler = new MyHandler(event);
+
+            expect(handler.toJSON()).contains({ event });
+        });
+    });
+
+    describe("fromJSON()", () => {
+        it("Parses from object", () => {
+            const event = "my event";
+            const handler = new MyHandler(event);
+
+            expect(() => handler.fromJSON({ event })).not.throw();
+        });
+
+        it("Throws an Error on missmatching event name", () => {
+            const event = "my event";
+            const handler = new MyHandler(event);
+
+            expect(() => handler.fromJSON({ event: "hello world" })).throws("missmatching event name");
+        });
+    });
 });
 
 class MyHandler extends Handler<Controller<any>> {
     public value = 0;
-    public event: Event;
+    public executedEvent: Event;
 
     public async execute(event: Event) {
-        this.event = event;
+        this.executedEvent = event;
         this.value += event.args.value ?? 0;
     }
 }

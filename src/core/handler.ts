@@ -9,14 +9,16 @@ import { Event } from "./event";
 import { Controller } from "./controller";
 import { Emitter } from "./emitter";
 
-/** Handles events with matching name. */
+/** 
+ * Contains Event handling.
+ */
 export abstract class Handler<T extends Controller<T>> extends Emitter<T> {
     /**
-     * Handles events with matching name.
-     * @param name optional event handling name. When empty, handler responds on every event.
+     * Contains Event handling.
+     * @param event optional specific event when to respond. If empty handler responds on every event.
      */
-    constructor(name?: string) {
-        super(name);
+    constructor(public readonly event: string | null = null) {
+        super();
     }
 
     /**
@@ -25,6 +27,19 @@ export abstract class Handler<T extends Controller<T>> extends Emitter<T> {
      * @returns any Promise.
      */
     protected abstract execute(event: Event): Promise<any>;
+
+    /**
+     * Calls parent.emit() with parent as emitter.
+     * Catches unset parent.
+     * @param event name or instance of event.
+     * @param args optional arguments of event.
+     * @returns an Event of parent when parent is set.
+     * @returns undefined when parent is unset.
+     */
+    public emit(event: string | Event, args?: NodeJS.ReadOnlyDict<any>): Event {
+        if (this.parent)
+            return this.parent.emit(event, args);
+    }
 
     /**
      * Calls this.execute() on event with matching name.
@@ -36,7 +51,7 @@ export abstract class Handler<T extends Controller<T>> extends Emitter<T> {
      * @returns void Promise
      */
     public async handleEvent(event: Event): Promise<void> {
-        if (this.name != undefined && this.name != event.name)
+        if (this.event != undefined && this.event != event.name)
             return;
 
         event.retain();
@@ -57,4 +72,27 @@ export abstract class Handler<T extends Controller<T>> extends Emitter<T> {
      * It`s recommended to call super.onDisabled().
      */
     public onDisabled(): void { }
+
+    /**
+     * @returns Object with event name.
+     */
+    public toJSON(): NodeJS.Dict<any> {
+        const data = super.toJSON();
+
+        data.event = this.event;
+
+        return data;
+    }
+
+    /** 
+     * Parses from object.
+     * Throws an Error on missmatching event name.
+     * It`s recommended to call super.fromJSON().
+     */
+    public fromJSON(data: NodeJS.ReadOnlyDict<any>): void {
+        if (data.event !== this.event)
+            throw new Error("missmatching event name");
+
+        super.fromJSON(data);
+    }
 }

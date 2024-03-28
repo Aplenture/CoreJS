@@ -23,24 +23,7 @@ export enum ActionState {
 }
 
 /**
- * Config of Action.
- */
-export interface ActionConfig {
-    /** If set, callback will be executed by events with this name only. */
-    readonly event?: string;
-    /** If set, callback will be executed by emitter with this name only. */
-    readonly emitter?: string;
-    /**
-     * If true, callback will be executed only once.
-     * After that removeFromParent() is called.
-     */
-    readonly once?: boolean;
-    /** Called on event execution if all event properties matching with Action properites. */
-    readonly callback?: ActionCallback;
-}
-
-/**
- * Handler with callback which is called on event handling.
+ * Event Handler with callback.
  * Contains different properties to handle events with specific properties only.
  */
 export class Action extends Handler<any> {
@@ -52,33 +35,44 @@ export class Action extends Handler<any> {
     protected readonly execute: ActionCallback;
 
     /**
-     * Handler with callback which is called on event handling.
+     * Event Handler with callback.
      * Contains different properties to handle events with specific properties only.
      * Throws an Error if callback is not given or not a function.
-     * @param config config, event name or callback
-     * @param callback callback
+     * @param event name or once flag or callback of event.
+     * @param emitter name or once flag or callback of event.
+     * @param once flag or callback of event.
+     * @param callback of event.
      */
-    constructor(config: ActionConfig | string | ActionCallback, callback?: ActionCallback) {
-        // set name of handler by config or null
-        super(typeof config == "string" ? config : !(config instanceof Function) ? config.event : null);
+    constructor(
+        event: string | null | boolean | ActionCallback,
+        emitter?: string | boolean | ActionCallback,
+        once?: boolean | ActionCallback,
+        callback?: ActionCallback
+    ) {
+        super(typeof event == "string" ? event : null);
 
-        if (config instanceof Function) {
-            this.execute = config;
-        } else if (config instanceof Object) {
-            this.emitter = config.emitter;
+        if (event == true)
+            this.state = ActionState.Once;
+        else if (typeof event == "function")
+            this.execute = event;
 
-            if (config.once)
-                this.state = ActionState.Once;
+        if (typeof emitter == "string")
+            this.emitter = emitter;
+        else if (emitter == true)
+            this.state = ActionState.Once;
+        else if (typeof emitter == "function")
+            this.execute = emitter;
 
-            if (config.callback instanceof Function)
-                this.execute = config.callback;
-        }
+        if (once == true)
+            this.state = ActionState.Once;
+        else if (typeof once == "function")
+            this.execute = once;
 
-        if (!this.execute)
-            if (callback instanceof Function)
-                this.execute = callback
-            else
-                throw new Error("invalid callback function");
+        if (typeof callback == "function")
+            this.execute = callback;
+
+        if (typeof this.execute != "function")
+            throw new Error("invalid callback function");
     }
 
     /** Current Action state. */

@@ -9,22 +9,20 @@ import { Event } from "./event";
 import { Module } from "./module";
 
 /**
- * Emits events to parent.
+ * Continas Event emitting.
  */
 export class Emitter<T extends Emitter<T>> extends Module<T> {
     /**
      * Calls parent.emit().
-     * Calls parent.emit() with the args.
      * Catches unset parent.
-     * @param event name.
-     * @param args default is undefined.
-     * @param emitter name, default is this.
-     * @param timestamp default is undefined.
-     * @returns an Event by parent when parent is set.
+     * @param event name or instance of event.
+     * @param args optional arguments of event.
+     * @param emitter optional name of event emitter.
+     * @returns an Event of parent when parent is set.
      * @returns undefined when parent is unset.
      */
-    public emit(event: string, args?: NodeJS.ReadOnlyDict<any>, emitter: string = this.name, timestamp?: number): Event {
+    public emit(event: Event | string, args?: NodeJS.ReadOnlyDict<any>, emitter?: string): Event {
         if (this.parent)
-            return this.parent.emit(event, args, emitter, timestamp);
+            return this.parent.emit(event, args, emitter);
     }
 }
